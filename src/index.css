@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-100 text-slate-800 min-h-screen;
+  }
+  
+  .font-math {
+    font-family: 'Cambria Math', 'Times New Roman', serif;
+  }
+}
+
+@layer components {
+  /* Rule tree display */
+  .rule-tree {
+    @apply inline-flex flex-col items-center font-math;
+  }
+
+  .rule-tree-premises {
+    @apply flex justify-center items-end gap-4;
+  }
+
+  .rule-tree-line {
+    @apply flex items-center my-1;
+  }
+
+  .rule-tree-bar {
+    @apply h-0.5 bg-slate-700 flex-grow;
+  }
+
+  .rule-tree-name {
+    @apply text-xs text-blue-600 font-bold ml-2 whitespace-nowrap;
+  }
+
+  .rule-tree-conclusion {
+    @apply text-center whitespace-nowrap;
+  }
+
+  /* Proof Node Styles */
+  .proof-node {
+    @apply inline-flex flex-col items-center;
+  }
+
+  .node-premises {
+    @apply flex justify-center items-end gap-6;
+  }
+
+  .node-line-container {
+    @apply flex items-center w-full my-1;
+  }
+
+  .node-sequent {
+    @apply font-math text-sm px-3 py-1.5 rounded cursor-pointer transition-all duration-200 whitespace-nowrap;
+  }
+
+  .node-sequent.open-goal {
+    @apply bg-amber-100 border-2 border-dashed border-amber-500 text-amber-800 
+           hover:bg-amber-200 hover:scale-105;
+  }
+
+  .node-sequent.completed {
+    @apply bg-green-100 border-2 border-green-500 text-green-800;
+  }
+
+  .node-sequent.axiom {
+    @apply bg-slate-200 border-2 border-slate-400 text-slate-700;
+  }
+
+  .node-sequent.selected {
+    @apply ring-4 ring-blue-400;
+  }
+
+  /* Exercise cards */
+  .exercise-card {
+    @apply bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-200 
+           rounded-lg p-4 cursor-pointer transition-all duration-300 
+           hover:-translate-y-1 hover:border-blue-500 hover:shadow-lg;
+  }
+
+  .difficulty-badge {
+    @apply inline-block px-3 py-1 rounded-full text-sm font-bold;
+  }
+
+  .difficulty-badge.easy {
+    @apply bg-green-100 text-green-800;
+  }
+
+  .difficulty-badge.medium {
+    @apply bg-amber-100 text-amber-800;
+  }
+
+  .difficulty-badge.hard {
+    @apply bg-red-100 text-red-800;
+  }
+
+  /* Rule buttons */
+  .rule-btn {
+    @apply font-math text-base px-4 py-2 border-2 border-blue-500 bg-white text-blue-500 
+           rounded-lg cursor-pointer transition-all duration-200 hover:bg-blue-500 
+           hover:text-white hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed 
+           disabled:transform-none;
+  }
+
+  /* Modal styles */
+  .modal-input {
+    @apply w-full px-4 py-3 text-base border-2 border-slate-300 rounded-lg font-math 
+           focus:outline-none focus:border-blue-500;
+  }
+
+  .modal-btn-confirm {
+    @apply px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg;
+  }
+
+  .modal-btn-cancel {
+    @apply px-6 py-2 bg-slate-300 hover:bg-slate-400 text-slate-800 font-semibold rounded-lg;
+  }
+
+  .hypothesis-option {
+    @apply block w-full px-4 py-3 my-2 border-2 border-slate-300 rounded-lg cursor-pointer 
+           font-math transition-all duration-200 hover:border-blue-500 hover:bg-blue-50 text-left;
+  }
+
+  /* Sequent styling */
+  .turnstile {
+    @apply mx-2 text-slate-600;
+  }
+
+  .context-formulas {
+    @apply text-slate-600;
+  }
+
+  .goal-formula {
+    @apply text-blue-700 font-semibold;
+  }
+}
+
+/* Animation for success */
+@keyframes celebrate {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.celebrate {
+  animation: celebrate 0.5s ease-in-out 3;
+}
+
+/* Bounce-in animation for completion modal */
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.5s ease-out;
+}
