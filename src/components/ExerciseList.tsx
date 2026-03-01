@@ -33,16 +33,21 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise, onClick }) => {
                           exercise.difficulty === 'medium' ? t.medium : t.hard;
 
   return (
-    <div className="exercise-card" onClick={onClick}>
-      <div className="flex items-center justify-between gap-3">
-        <div className="text-lg text-slate-900 dark:text-slate-100 min-w-0">
-          <Latex math={getGoalLatex()} />
+    <button
+      type="button"
+      className="exercise-card"
+      onClick={onClick}
+      aria-label={`${t.startProof}: ${exercise.goal}`}
+    >
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+        <div className="text-base sm:text-lg text-slate-900 dark:text-slate-100 min-w-0 overflow-hidden">
+          <Latex math={getGoalLatex()} className="exercise-card-math" />
         </div>
-        <span className={`difficulty-badge ${exercise.difficulty} shrink-0`}>
+        <span className={`difficulty-badge ${exercise.difficulty} shrink-0 self-start sm:self-auto`}>
           {difficultyLabel}
         </span>
       </div>
-    </div>
+    </button>
   );
 };
 
@@ -93,6 +98,7 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
 }) => {
   const { t } = useLanguage();
   const [isDrawerResizing, setIsDrawerResizing] = useState(false);
+  const mobileDrawerWidth = `min(${drawerWidth}px, calc(100vw - 1rem))`;
   const difficultyLabels: Record<string, string> = {
     easy: t.easy,
     medium: t.medium,
@@ -133,9 +139,9 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
       />
       
       {/* Drawer */}
-      <div className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-slate-900 dark:border-r-2 dark:border-slate-700 shadow-2xl z-40 transform transition-transform duration-300 ease-out md:translate-x-0 ${
+      <div className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-slate-900 dark:border-r-2 dark:border-slate-700 z-40 transform transition-transform duration-300 ease-out md:translate-x-0 ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
-      }`} style={{ width: `${drawerWidth}px` }}>
+      }`} style={{ width: mobileDrawerWidth, maxWidth: `${drawerWidth}px` }}>
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="relative flex items-center justify-center p-4 border-b-2 border-slate-200 dark:border-slate-700">
@@ -349,11 +355,11 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
 
   return (
     <section className="mb-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsDrawerOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-white text-slate-900 hover:text-blue-700 hover:bg-blue-50 rounded-lg shadow-sm border-2 border-slate-200 hover:border-blue-500 transition-colors md:hidden"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white text-slate-900 hover:text-blue-700 hover:bg-blue-50 rounded-lg shadow-sm border-2 border-slate-200 hover:border-blue-500 transition-colors md:hidden"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -373,8 +379,6 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
         onClose={() => setIsCustomModalOpen(false)}
         title={t.customSequentModalTitle}
       >
-        <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">{t.customSequentModalDescription}</p>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">{t.customSequentSyntaxHelp}</p>
         <label className="block text-slate-700 dark:text-slate-200 mb-2">{t.hypotheses}</label>
         <input
           type="text"
@@ -391,6 +395,9 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
           onChange={(e) => setCustomGoal(e.target.value)}
           placeholder={t.customGoalPlaceholder}
         />
+        <p className="text-sm text-slate-500 mt-2 dark:text-slate-400">
+          {t.customSequentSyntaxHelp}
+        </p>
         <div className="flex gap-3 justify-end mt-4">
           <button className="modal-btn-cancel" onClick={() => setIsCustomModalOpen(false)}>{t.cancel}</button>
           <button
@@ -422,7 +429,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
 
       {/* Exercise Grid */}
       {filteredExercises.length > 0 ? (
-        <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4">
           {displayedExercises.map(exercise => (
             <ExerciseCard 
               key={exercise.id} 

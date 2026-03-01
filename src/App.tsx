@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Formula, FormulaParser } from './formulas';
-import { ProofTree, ProofResult, ProofNode } from './proof';
+import { ProofTree, ProofResult, ProofNode, ProofMessageKey } from './proof';
 import { Exercise, ParsedExercise, exercises, parseExercise } from './exercises';
 import { 
   ExerciseList, 
@@ -10,6 +10,7 @@ import {
   ProofNodeDisplay,
   RulePanel
 } from './components';
+import { ruleRelativeWidthPct } from './components/RulePanel';
 import { useLanguage, LanguageSelector } from './i18n';
 
 type MessageType = 'success' | 'error' | 'info';
@@ -21,10 +22,28 @@ interface Message {
 
 type ModalAction = 'impl-elim' | 'and-elim-left' | 'and-elim-right' | 'or-elim' | 'neg-elim';
 
+const modalImageByAction: Record<ModalAction, string> = {
+  'impl-elim': 'assets/rules/imp_elim.png',
+  'and-elim-left': 'assets/rules/and_elim_left.png',
+  'and-elim-right': 'assets/rules/and_elim_right.png',
+  'or-elim': 'assets/rules/or_elim.png',
+  'neg-elim': 'assets/rules/neg_elim.png'
+};
+
+const modalImageScale = 0.6;
+
+const modalImageWidthByAction: Record<ModalAction, number> = {
+  'impl-elim': Math.round(ruleRelativeWidthPct['impl-elim'] * modalImageScale),
+  'and-elim-left': Math.round(ruleRelativeWidthPct['and-elim-left'] * modalImageScale),
+  'and-elim-right': Math.round(ruleRelativeWidthPct['and-elim-right'] * modalImageScale),
+  'or-elim': Math.round(ruleRelativeWidthPct['or-elim'] * 0.8),
+  'neg-elim': Math.round(ruleRelativeWidthPct['neg-elim'] * modalImageScale)
+};
+
 interface ModalConfig {
   isOpen: boolean;
   title: string;
-  description: string;
+  selectionHint: string;
   placeholder: string;
   action: ModalAction;
 }
@@ -44,6 +63,27 @@ const App: React.FC = () => {
   const [drawerWidth, setDrawerWidth] = useState(420);
   const [isRulesDrawerResizing, setIsRulesDrawerResizing] = useState(false);
   const desktopDrawerOffset = drawerWidth + 16;
+  const mobileDrawerWidth = `min(${drawerWidth}px, calc(100vw - 1rem))`;
+
+  const proofMessages = useCallback(() => {
+    const entries: Record<ProofMessageKey, string> = {
+      noGoalSelected: t.noGoalSelected,
+      goalMustBeFalsum: t.goalMustBeFalsum,
+      proofHypothesisNotInContext: t.proofHypothesisNotInContext,
+      proofHypothesisGoalMismatch: t.proofHypothesisGoalMismatch,
+      proofGoalNotImplication: t.proofGoalNotImplication,
+      proofSelectedNotImplication: t.proofSelectedNotImplication,
+      proofImplicationConclusionMismatch: t.proofImplicationConclusionMismatch,
+      proofGoalNotConjunction: t.proofGoalNotConjunction,
+      proofSelectedNotConjunction: t.proofSelectedNotConjunction,
+      proofConjunctionLeftMismatch: t.proofConjunctionLeftMismatch,
+      proofConjunctionRightMismatch: t.proofConjunctionRightMismatch,
+      proofGoalNotDisjunction: t.proofGoalNotDisjunction,
+      proofSelectedNotDisjunction: t.proofSelectedNotDisjunction,
+      proofGoalNotNegation: t.proofGoalNotNegation
+    };
+    return entries;
+  }, [t]);
 
   // Force re-render without losing the class instance
   const forceUpdate = useCallback(() => {
@@ -59,13 +99,13 @@ const App: React.FC = () => {
 
   const selectExercise = useCallback((exercise: Exercise) => {
     const parsed = parseExercise(exercise);
-    const tree = new ProofTree(parsed.goalFormula, parsed.hypothesesFormulas);
+    const tree = new ProofTree(parsed.goalFormula, parsed.hypothesesFormulas, proofMessages());
     setCurrentExercise(exercise);
     setParsedExercise(parsed);
     setProofTree(tree);
     proofTreeRef.current = tree;
     setMessage(null);
-  }, []);
+  }, [proofMessages]);
 
   const createCustomSequent = useCallback((goal: string, hypotheses: string[]) => {
     try {
@@ -84,7 +124,7 @@ const App: React.FC = () => {
         hypothesesFormulas: hypotheses.map(h => FormulaParser.parse(h))
       };
 
-      const tree = new ProofTree(parsed.goalFormula, parsed.hypothesesFormulas);
+      const tree = new ProofTree(parsed.goalFormula, parsed.hypothesesFormulas, proofMessages());
       setCurrentExercise(customExercise);
       setParsedExercise(parsed);
       setProofTree(tree);
@@ -93,16 +133,16 @@ const App: React.FC = () => {
     } catch (e) {
       showMessage(`${t.invalidFormula}: ${(e as Error).message}`, 'error');
     }
-  }, [showMessage, t]);
+  }, [proofMessages, showMessage, t]);
 
   const resetProof = useCallback(() => {
     if (parsedExercise) {
-      const tree = new ProofTree(parsedExercise.goalFormula, parsedExercise.hypothesesFormulas);
+      const tree = new ProofTree(parsedExercise.goalFormula, parsedExercise.hypothesesFormulas, proofMessages());
       setProofTree(tree);
       proofTreeRef.current = tree;
       setMessage(null);
     }
-  }, [parsedExercise]);
+  }, [parsedExercise, proofMessages]);
 
   const backToExercises = useCallback(() => {
     setCurrentExercise(null);
@@ -211,7 +251,7 @@ const App: React.FC = () => {
         setModalState({
           isOpen: true,
           title: t.implElimTitle,
-          description: t.implElimDesc(node.sequent.goal.toDisplayString()),
+          selectionHint: t.implElimDesc(node.sequent.goal.toDisplayString()),
           placeholder: `A -> ${node.sequent.goal.toDisplayString()}`,
           action: 'impl-elim'
         });
@@ -225,7 +265,7 @@ const App: React.FC = () => {
         setModalState({
           isOpen: true,
           title: t.andElimLeftTitle,
-          description: t.andElimLeftDesc(node.sequent.goal.toDisplayString()),
+          selectionHint: t.andElimLeftDesc(node.sequent.goal.toDisplayString()),
           placeholder: `${node.sequent.goal.toDisplayString()} & B`,
           action: 'and-elim-left'
         });
@@ -235,7 +275,7 @@ const App: React.FC = () => {
         setModalState({
           isOpen: true,
           title: t.andElimRightTitle,
-          description: t.andElimRightDesc(node.sequent.goal.toDisplayString()),
+          selectionHint: t.andElimRightDesc(node.sequent.goal.toDisplayString()),
           placeholder: `A & ${node.sequent.goal.toDisplayString()}`,
           action: 'and-elim-right'
         });
@@ -253,7 +293,7 @@ const App: React.FC = () => {
         setModalState({
           isOpen: true,
           title: t.orElimTitle,
-          description: t.orElimDesc,
+          selectionHint: t.orElimDesc,
           placeholder: 'A | B',
           action: 'or-elim'
         });
@@ -271,7 +311,7 @@ const App: React.FC = () => {
         setModalState({
           isOpen: true,
           title: t.negElimTitle,
-          description: t.negElimDesc,
+          selectionHint: t.negElimDesc,
           placeholder: 'A',
           action: 'neg-elim'
         });
@@ -321,17 +361,17 @@ const App: React.FC = () => {
   return (
     <div className={`${isDarkMode ? 'dark' : ''} min-h-screen ${isDarkMode ? 'bg-slate-900 text-slate-100' : 'bg-slate-100 text-slate-800'}`}>
       <header
-        className={`${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-gradient-to-r from-slate-800 to-blue-600 text-white'} sticky top-0 z-30 py-4 px-4 md:pl-[var(--drawer-offset)]`}
+        className={`${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-gradient-to-r from-slate-800 to-blue-600 text-white'} sticky top-0 z-30 py-3 px-3 sm:py-4 sm:px-4 md:pl-[var(--drawer-offset)]`}
         style={{ ['--drawer-offset' as string]: `${desktopDrawerOffset}px` } as React.CSSProperties}
       >
-        <div className="max-w-[112rem] mx-auto flex items-center justify-between gap-4">
-          <h1 className="text-3xl font-bold">{t.appTitle}</h1>
-          <div className="flex items-center gap-2">
+        <div className="max-w-[112rem] mx-auto flex items-center justify-between gap-2 sm:gap-4">
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-bold leading-tight pr-2">{t.appTitle}</h1>
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={backToExercises}
               title={t.home}
               aria-label={t.home}
-              className={`${isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-100 border-slate-700' : 'bg-white/15 hover:bg-white/25 text-white border-white/30'} inline-flex items-center justify-center w-11 h-11 rounded-xl border-2 transition-colors`}
+              className={`${isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-100 border-slate-700' : 'bg-white/15 hover:bg-white/25 text-white border-white/30'} inline-flex items-center justify-center w-11 h-11 rounded-xl border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent`}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l9-9 9 9M4.5 10.5V21h15v-10.5" />
@@ -343,7 +383,7 @@ const App: React.FC = () => {
               rel="noopener noreferrer"
               title={t.github}
               aria-label={t.github}
-              className={`${isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-100 border-slate-700' : 'bg-white/15 hover:bg-white/25 text-white border-white/30'} inline-flex items-center justify-center w-11 h-11 rounded-xl border-2 transition-colors`}
+              className={`${isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-100 border-slate-700' : 'bg-white/15 hover:bg-white/25 text-white border-white/30'} inline-flex items-center justify-center w-11 h-11 rounded-xl border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent`}
             >
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path fillRule="evenodd" clipRule="evenodd" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.4 7.86 10.92.57.1.78-.25.78-.56 0-.28-.01-1.02-.01-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.32-1.27-1.67-1.27-1.67-1.04-.7.08-.68.08-.68 1.15.08 1.75 1.18 1.75 1.18 1.02 1.74 2.67 1.24 3.32.95.1-.74.4-1.24.72-1.53-2.56-.3-5.25-1.28-5.25-5.71 0-1.26.45-2.28 1.18-3.08-.12-.3-.51-1.52.11-3.17 0 0 .96-.31 3.15 1.18a10.9 10.9 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.65.23 2.87.11 3.17.74.8 1.18 1.82 1.18 3.08 0 4.44-2.7 5.41-5.27 5.7.41.36.77 1.06.77 2.14 0 1.55-.01 2.8-.01 3.18 0 .31.2.67.79.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z" />
@@ -353,7 +393,7 @@ const App: React.FC = () => {
               onClick={toggleDarkMode}
               title={isDarkMode ? t.lightMode : t.darkMode}
               aria-label={isDarkMode ? t.lightMode : t.darkMode}
-              className={`${isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-slate-100 border-slate-600' : 'bg-white/15 hover:bg-white/25 text-white border-white/30'} inline-flex items-center justify-center w-11 h-11 rounded-xl border-2 transition-colors`}
+              className={`${isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-slate-100 border-slate-600' : 'bg-white/15 hover:bg-white/25 text-white border-white/30'} inline-flex items-center justify-center w-11 h-11 rounded-xl border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent`}
             >
               {isDarkMode ? (
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -371,7 +411,7 @@ const App: React.FC = () => {
       </header>
 
       <main
-        className="max-w-[112rem] mx-auto p-4 md:p-8 md:pl-[var(--drawer-offset)]"
+        className="max-w-[112rem] mx-auto p-3 sm:p-4 md:p-8 md:pl-[var(--drawer-offset)]"
         style={{ ['--drawer-offset' as string]: `${desktopDrawerOffset}px` } as React.CSSProperties}
       >
         {!currentExercise ? (
@@ -385,8 +425,8 @@ const App: React.FC = () => {
         ) : (
           <>
             {/* Proof Tree */}
-            <div className={`${isDarkMode ? 'bg-slate-800 border-2 border-slate-700' : 'bg-white border-2 border-slate-200'} rounded-xl p-6 mb-6 shadow-lg min-h-[400px] overflow-x-auto`}>
-              <div className="flex justify-center p-4">
+            <div className={`${isDarkMode ? 'bg-slate-800 border-2 border-slate-700' : 'bg-white border-2 border-slate-200'} rounded-xl p-3 sm:p-4 md:p-6 mb-6 shadow-lg min-h-[300px] md:min-h-[400px] overflow-x-auto`}>
+              <div className="w-max min-w-full flex justify-center p-1 sm:p-2 md:p-4">
                 {proofTree && (
                   <ProofNodeDisplay
                     node={proofTree.root}
@@ -399,9 +439,9 @@ const App: React.FC = () => {
 
             {/* Controls */}
             <div className="mb-6">
-              <div className="flex flex-wrap justify-center gap-4 md:hidden">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 md:hidden">
                 <button
-                  className="px-4 py-3 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors border-2 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500 inline-flex items-center justify-center"
+                  className="px-4 py-2.5 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors border-2 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500 inline-flex items-center justify-center"
                   onClick={() => setIsRulesDrawerOpen(true)}
                   aria-label={t.inferenceRules}
                   title={t.inferenceRules}
@@ -411,19 +451,19 @@ const App: React.FC = () => {
                   </svg>
                 </button>
                 <button 
-                  className="px-6 py-3 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors border-2 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500"
+                  className="px-4 py-2.5 text-sm sm:text-base text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors border-2 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500"
                   onClick={resetProof}
                 >
                   {t.resetProof}
                 </button>
                 <button 
-                  className="px-6 py-3 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors border-2 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500"
+                  className="px-4 py-2.5 text-sm sm:text-base text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors border-2 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500"
                   onClick={undo}
                 >
                   {t.undo}
                 </button>
                 <button
-                  className="px-6 py-3 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors border-2 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500"
+                  className="px-4 py-2.5 text-sm sm:text-base text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors border-2 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500 col-span-2"
                   onClick={goToNextExercise}
                 >
                   {t.nextExercise}
@@ -478,10 +518,10 @@ const App: React.FC = () => {
           />
 
           <aside
-            className={`fixed top-0 left-0 h-full bg-white dark:bg-slate-900 dark:border-r dark:border-slate-700 shadow-2xl z-40 transform transition-transform duration-300 ease-out md:translate-x-0 ${
+            className={`fixed top-0 left-0 h-full bg-white dark:bg-slate-900 dark:border-r dark:border-slate-700 z-40 transform transition-transform duration-300 ease-out md:translate-x-0 ${
               isRulesDrawerOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
-            style={{ width: `${drawerWidth}px` }}
+            style={{ width: mobileDrawerWidth, maxWidth: `${drawerWidth}px` }}
           >
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 md:hidden">
@@ -533,7 +573,9 @@ const App: React.FC = () => {
           isOpen={modalState.isOpen}
           onClose={() => setModalState(null)}
           title={modalState.title}
-          description={modalState.description}
+          imageSrc={modalImageByAction[modalState.action]}
+          imageWidthPct={modalImageWidthByAction[modalState.action]}
+          selectionHint={modalState.selectionHint}
           placeholder={modalState.placeholder}
           onSubmit={handleModalSubmit}
           onError={(msg) => showMessage(msg, 'error')}

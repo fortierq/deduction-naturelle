@@ -3,15 +3,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Formula, FormulaParser } from '../formulas';
 import { useLanguage } from '../i18n';
+import { Latex } from './Latex';
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
+  titleAsLatex?: boolean;
+  hideTitle?: boolean;
   children: React.ReactNode;
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, titleAsLatex = false, hideTitle = false, children }) => {
   if (!isOpen) return null;
 
   return (
@@ -20,7 +23,11 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="bg-white border-2 border-slate-200 dark:bg-slate-800 dark:border-2 dark:border-slate-700 rounded-xl p-6 max-w-md w-11/12 max-h-[80vh] overflow-y-auto shadow-2xl">
-        <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">{title}</h3>
+        {!hideTitle && (
+          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">
+            {titleAsLatex ? <Latex math={title} /> : title}
+          </h3>
+        )}
         {children}
       </div>
     </div>
@@ -31,7 +38,9 @@ interface FormulaInputModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
-  description: string;
+  imageSrc?: string;
+  imageWidthPct?: number;
+  selectionHint?: string;
   placeholder: string;
   onSubmit: (formula: Formula) => void;
   onError: (message: string) => void;
@@ -41,7 +50,9 @@ export const FormulaInputModal: React.FC<FormulaInputModalProps> = ({
   isOpen,
   onClose,
   title,
-  description,
+  imageSrc,
+  imageWidthPct = 100,
+  selectionHint,
   placeholder,
   onSubmit,
   onError
@@ -77,8 +88,24 @@ export const FormulaInputModal: React.FC<FormulaInputModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title}>
-      <label className="block text-slate-700 mb-2">{description}</label>
+    <Modal isOpen={isOpen} onClose={onClose} title={title} titleAsLatex hideTitle>
+      {imageSrc && (
+        <div className="mb-4 flex justify-center">
+          <img
+            src={imageSrc}
+            alt=""
+            aria-hidden="true"
+            className="max-h-24 w-auto object-contain dark:invert"
+            style={{ width: `${imageWidthPct}%`, maxWidth: '100%' }}
+            loading="lazy"
+          />
+        </div>
+      )}
+      {selectionHint && (
+        <div className="text-sm text-slate-700 dark:text-slate-300 mb-2">
+          <Latex math={selectionHint} />
+        </div>
+      )}
       <input
         ref={inputRef}
         type="text"
@@ -88,7 +115,7 @@ export const FormulaInputModal: React.FC<FormulaInputModalProps> = ({
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
       />
-      <p className="text-sm text-slate-500 mt-2">
+      <p className="text-sm text-slate-500 mt-2 dark:text-slate-400">
         {t.customSequentSyntaxHelp}
       </p>
       <div className="flex gap-3 justify-end mt-4">

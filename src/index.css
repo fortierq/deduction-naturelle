@@ -57,7 +57,7 @@
   }
 
   .node-premises {
-    @apply flex justify-center items-end gap-8;
+    @apply flex justify-center items-end gap-3 sm:gap-5 md:gap-8;
   }
 
   .node-line-container {
@@ -65,7 +65,7 @@
   }
 
   .node-sequent {
-    @apply font-math text-base px-4 py-2 rounded cursor-pointer whitespace-nowrap select-none;
+    @apply font-math text-sm sm:text-base px-2.5 sm:px-4 py-1.5 sm:py-2 rounded cursor-pointer whitespace-nowrap select-none;
   }
 
   .node-sequent,
@@ -95,12 +95,27 @@
   /* Exercise cards */
   .exercise-card {
     @apply bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-200 
-           rounded-lg p-4 cursor-pointer
-           hover:border-blue-500 hover:from-blue-50 hover:to-blue-100;
+           rounded-lg p-3 sm:p-4 cursor-pointer w-full text-left
+           transition-all duration-200 hover:border-blue-500 hover:from-blue-50 hover:to-blue-100
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2
+           active:scale-[0.99];
   }
 
   .difficulty-badge {
-    @apply inline-block px-3 py-1 rounded-full text-sm font-bold;
+    @apply inline-block px-2.5 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold;
+  }
+
+  .exercise-card-math {
+    @apply block max-w-full;
+  }
+
+  .exercise-card-math mjx-container {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+
+  .exercise-card-math mjx-math {
+    white-space: normal !important;
   }
 
   .difficulty-badge.easy {
@@ -119,24 +134,28 @@
   .rule-btn {
       @apply font-math text-base px-4 py-2 border-2 border-slate-200 bg-white text-slate-900
         rounded-lg cursor-pointer transition-all duration-200 hover:bg-blue-50
-        hover:text-blue-700 hover:border-blue-500 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed 
+        hover:text-blue-700 hover:border-blue-500 hover:-translate-y-0.5
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2
+        disabled:opacity-50 disabled:cursor-not-allowed 
            disabled:transform-none;
   }
 
   /* Modal styles */
   .modal-input {
     @apply w-full px-4 py-3 text-base border-2 border-slate-300 rounded-lg font-math 
-           focus:outline-none focus:border-blue-500;
+           focus:outline-none focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-300/70;
   }
 
   .modal-btn-confirm {
     @apply px-6 py-2 border-2 border-slate-200 bg-white text-slate-900 font-semibold rounded-lg
-           transition-colors hover:bg-blue-50 hover:text-blue-700 hover:border-blue-500;
+           transition-colors hover:bg-blue-50 hover:text-blue-700 hover:border-blue-500
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2;
   }
 
   .modal-btn-cancel {
     @apply px-6 py-2 border-2 border-slate-200 bg-white text-slate-900 font-semibold rounded-lg
-           transition-colors hover:bg-blue-50 hover:text-blue-700 hover:border-blue-500;
+           transition-colors hover:bg-blue-50 hover:text-blue-700 hover:border-blue-500
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2;
   }
 
   .hypothesis-option {

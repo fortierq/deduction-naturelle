@@ -116,7 +116,7 @@ export const ProofNodeDisplay: React.FC<ProofNodeDisplayProps> = ({ node, select
                 className="h-px bg-slate-700 dark:bg-slate-300" 
                 style={{ width: `${lineWidth}px`, minWidth: '110px' }}
               />
-              <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 text-sm text-slate-900 dark:text-slate-100 font-bold whitespace-nowrap">
+              <span className="absolute left-full ml-1.5 sm:ml-2 top-1/2 -translate-y-1/2 text-xs sm:text-sm text-slate-900 dark:text-slate-100 font-bold whitespace-nowrap">
                 <Latex math={ruleLabel.ruleLatex} />
               </span>
             </div>

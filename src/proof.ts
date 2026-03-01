@@ -68,6 +68,41 @@ export interface ProofResult {
     error?: string;
 }
 
+export type ProofMessageKey =
+    | 'noGoalSelected'
+    | 'goalMustBeFalsum'
+    | 'proofHypothesisNotInContext'
+    | 'proofHypothesisGoalMismatch'
+    | 'proofGoalNotImplication'
+    | 'proofSelectedNotImplication'
+    | 'proofImplicationConclusionMismatch'
+    | 'proofGoalNotConjunction'
+    | 'proofSelectedNotConjunction'
+    | 'proofConjunctionLeftMismatch'
+    | 'proofConjunctionRightMismatch'
+    | 'proofGoalNotDisjunction'
+    | 'proofSelectedNotDisjunction'
+    | 'proofGoalNotNegation';
+
+type ProofMessages = Record<ProofMessageKey, string>;
+
+const defaultProofMessages: ProofMessages = {
+    noGoalSelected: 'No goal selected',
+    goalMustBeFalsum: 'Goal must be ⊥ (falsum)',
+    proofHypothesisNotInContext: 'Hypothesis not available in current context',
+    proofHypothesisGoalMismatch: 'Hypothesis does not match the goal',
+    proofGoalNotImplication: 'Goal is not an implication',
+    proofSelectedNotImplication: 'Selected formula is not an implication',
+    proofImplicationConclusionMismatch: 'Conclusion of implication does not match the goal',
+    proofGoalNotConjunction: 'Goal is not a conjunction',
+    proofSelectedNotConjunction: 'Selected formula is not a conjunction',
+    proofConjunctionLeftMismatch: 'Left side of conjunction does not match the goal',
+    proofConjunctionRightMismatch: 'Right side of conjunction does not match the goal',
+    proofGoalNotDisjunction: 'Goal is not a disjunction',
+    proofSelectedNotDisjunction: 'Selected formula is not a disjunction',
+    proofGoalNotNegation: 'Goal is not a negation'
+};
+
 interface ProofState {
     root: ProofNode;
     selectedId: number;
@@ -77,12 +112,21 @@ export class ProofTree {
     public root: ProofNode;
     public selectedNode: ProofNode | null;
     private history: ProofState[] = [];
+    private messages: ProofMessages;
 
-    constructor(goal: Formula, hypotheses: Formula[] = []) {
+    constructor(goal: Formula, hypotheses: Formula[] = [], messages?: Partial<ProofMessages>) {
         ProofNode.reset();
         const sequent = new Sequent(hypotheses, goal);
         this.root = new ProofNode(sequent);
         this.selectedNode = this.root;
+        this.messages = {
+            ...defaultProofMessages,
+            ...messages
+        };
+    }
+
+    private fail(key: ProofMessageKey): ProofResult {
+        return { success: false, error: this.messages[key] };
     }
 
     saveState(): void {
@@ -140,17 +184,17 @@ export class ProofTree {
     }
 
     applyAxiom(hypothesis: Formula): ProofResult {
-        if (!this.selectedNode) return { success: false, error: 'No goal selected' };
+        if (!this.selectedNode) return this.fail('noGoalSelected');
         
         const node = this.selectedNode;
         const sequent = node.sequent;
         
         if (!sequent.hasInContext(hypothesis)) {
-            return { success: false, error: 'Hypothesis not available in current context' };
+            return this.fail('proofHypothesisNotInContext');
         }
         
         if (!sequent.goal.equals(hypothesis)) {
-            return { success: false, error: 'Hypothesis does not match the goal' };
+            return this.fail('proofHypothesisGoalMismatch');
         }
 
         this.saveState();
@@ -161,13 +205,13 @@ export class ProofTree {
     }
 
     applyImplIntro(): ProofResult {
-        if (!this.selectedNode) return { success: false, error: 'No goal selected' };
+        if (!this.selectedNode) return this.fail('noGoalSelected');
         
         const node = this.selectedNode;
         const goal = node.sequent.goal;
         
         if (goal.type !== 'impl') {
-            return { success: false, error: 'Goal is not an implication' };
+            return this.fail('proofGoalNotImplication');
         }
 
         this.saveState();
@@ -185,16 +229,16 @@ export class ProofTree {
     }
 
     applyImplElim(implFormula: Formula): ProofResult {
-        if (!this.selectedNode) return { success: false, error: 'No goal selected' };
+        if (!this.selectedNode) return this.fail('noGoalSelected');
         
         const node = this.selectedNode;
         
         if (implFormula.type !== 'impl') {
-            return { success: false, error: 'Selected formula is not an implication' };
+            return this.fail('proofSelectedNotImplication');
         }
         
         if (!implFormula.right.equals(node.sequent.goal)) {
-            return { success: false, error: 'Conclusion of implication does not match the goal' };
+            return this.fail('proofImplicationConclusionMismatch');
         }
 
         this.saveState();
@@ -209,13 +253,13 @@ export class ProofTree {
     }
 
     applyAndIntro(): ProofResult {
-        if (!this.selectedNode) return { success: false, error: 'No goal selected' };
+        if (!this.selectedNode) return this.fail('noGoalSelected');
         
         const node = this.selectedNode;
         const goal = node.sequent.goal;
         
         if (goal.type !== 'and') {
-            return { success: false, error: 'Goal is not a conjunction' };
+            return this.fail('proofGoalNotConjunction');
         }
 
         this.saveState();
@@ -230,16 +274,16 @@ export class ProofTree {
     }
 
     applyAndElimLeft(conjFormula: Formula): ProofResult {
-        if (!this.selectedNode) return { success: false, error: 'No goal selected' };
+        if (!this.selectedNode) return this.fail('noGoalSelected');
         
         const node = this.selectedNode;
         
         if (conjFormula.type !== 'and') {
-            return { success: false, error: 'Selected formula is not a conjunction' };
+            return this.fail('proofSelectedNotConjunction');
         }
         
         if (!conjFormula.left.equals(node.sequent.goal)) {
-            return { success: false, error: 'Left side of conjunction does not match the goal' };
+            return this.fail('proofConjunctionLeftMismatch');
         }
 
         this.saveState();
@@ -253,16 +297,16 @@ export class ProofTree {
     }
 
     applyAndElimRight(conjFormula: Formula): ProofResult {
-        if (!this.selectedNode) return { success: false, error: 'No goal selected' };
+        if (!this.selectedNode) return this.fail('noGoalSelected');
         
         const node = this.selectedNode;
         
         if (conjFormula.type !== 'and') {
-            return { success: false, error: 'Selected formula is not a conjunction' };
+            return this.fail('proofSelectedNotConjunction');
         }
         
         if (!conjFormula.right.equals(node.sequent.goal)) {
-            return { success: false, error: 'Right side of conjunction does not match the goal' };
+            return this.fail('proofConjunctionRightMismatch');
         }
 
         this.saveState();
@@ -276,13 +320,13 @@ export class ProofTree {
     }
 
     applyOrIntroLeft(): ProofResult {
-        if (!this.selectedNode) return { success: false, error: 'No goal selected' };
+        if (!this.selectedNode) return this.fail('noGoalSelected');
         
         const node = this.selectedNode;
         const goal = node.sequent.goal;
         
         if (goal.type !== 'or') {
-            return { success: false, error: 'Goal is not a disjunction' };
+            return this.fail('proofGoalNotDisjunction');
         }
 
         this.saveState();
@@ -296,13 +340,13 @@ export class ProofTree {
     }
 
     applyOrIntroRight(): ProofResult {
-        if (!this.selectedNode) return { success: false, error: 'No goal selected' };
+        if (!this.selectedNode) return this.fail('noGoalSelected');
         
         const node = this.selectedNode;
         const goal = node.sequent.goal;
         
         if (goal.type !== 'or') {
-            return { success: false, error: 'Goal is not a disjunction' };
+            return this.fail('proofGoalNotDisjunction');
         }
 
         this.saveState();
@@ -316,12 +360,12 @@ export class ProofTree {
     }
 
     applyOrElim(disjFormula: Formula): ProofResult {
-        if (!this.selectedNode) return { success: false, error: 'No goal selected' };
+        if (!this.selectedNode) return this.fail('noGoalSelected');
         
         const node = this.selectedNode;
         
         if (disjFormula.type !== 'or') {
-            return { success: false, error: 'Selected formula is not a disjunction' };
+            return this.fail('proofSelectedNotDisjunction');
         }
 
         this.saveState();
@@ -341,13 +385,13 @@ export class ProofTree {
     }
 
     applyNegIntro(): ProofResult {
-        if (!this.selectedNode) return { success: false, error: 'No goal selected' };
+        if (!this.selectedNode) return this.fail('noGoalSelected');
         
         const node = this.selectedNode;
         const goal = node.sequent.goal;
         
         if (goal.type !== 'neg') {
-            return { success: false, error: 'Goal is not a negation' };
+            return this.fail('proofGoalNotNegation');
         }
 
         this.saveState();
@@ -364,12 +408,12 @@ export class ProofTree {
     }
 
     applyNegElim(formula: Formula): ProofResult {
-        if (!this.selectedNode) return { success: false, error: 'No goal selected' };
+        if (!this.selectedNode) return this.fail('noGoalSelected');
         
         const node = this.selectedNode;
         
         if (node.sequent.goal.type !== 'bottom') {
-            return { success: false, error: 'Goal must be ⊥ (falsum)' };
+            return this.fail('goalMustBeFalsum');
         }
 
         this.saveState();
@@ -386,7 +430,7 @@ export class ProofTree {
     }
 
     applyAbsurd(): ProofResult {
-        if (!this.selectedNode) return { success: false, error: 'No goal selected' };
+        if (!this.selectedNode) return this.fail('noGoalSelected');
         
         const node = this.selectedNode;
 
@@ -401,7 +445,7 @@ export class ProofTree {
     }
 
     applyraa(): ProofResult {
-        if (!this.selectedNode) return { success: false, error: 'No goal selected' };
+        if (!this.selectedNode) return this.fail('noGoalSelected');
         
         const node = this.selectedNode;
 

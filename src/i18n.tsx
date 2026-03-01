@@ -91,6 +91,18 @@ interface Translations {
   nothingToUndo: string;
   unknownError: string;
   proofCompletedWithAxioms: string;
+  proofHypothesisNotInContext: string;
+  proofHypothesisGoalMismatch: string;
+  proofGoalNotImplication: string;
+  proofSelectedNotImplication: string;
+  proofImplicationConclusionMismatch: string;
+  proofGoalNotConjunction: string;
+  proofSelectedNotConjunction: string;
+  proofConjunctionLeftMismatch: string;
+  proofConjunctionRightMismatch: string;
+  proofGoalNotDisjunction: string;
+  proofSelectedNotDisjunction: string;
+  proofGoalNotNegation: string;
   
   // Completion modal
   proofComplete: string;
@@ -170,18 +182,18 @@ const translations: Record<Language, Translations> = {
     axiom: 'Axiome',
 
     // Modal titles
-    implElimTitle: '→ Élimination (Modus Ponens)',
-    andElimLeftTitle: '∧ Élimination Gauche',
-    andElimRightTitle: '∧ Élimination Droite',
-    orElimTitle: '∨ Élimination',
-    negElimTitle: '¬ Élimination',
+    implElimTitle: '\\to_{e}',
+    andElimLeftTitle: '\\wedge_{e}^{1}',
+    andElimRightTitle: '\\wedge_{e}^{2}',
+    orElimTitle: '\\vee_{e}',
+    negElimTitle: '\\neg_{e}',
 
     // Modal descriptions
-    implElimDesc: (goal) => `Entrez l'implication A → ${goal} :`,
-    andElimLeftDesc: (goal) => `Entrez la conjonction ${goal} ∧ B :`,
-    andElimRightDesc: (goal) => `Entrez la conjonction A ∧ ${goal} :`,
-    orElimDesc: 'Entrez la disjonction A ∨ B pour faire une analyse de cas :',
-    negElimDesc: 'Entrez la formule A (vous devrez prouver A et ¬A) :',
+    implElimDesc: () => `\\text{Par quoi remplacer }A \\to B\\text{ ?}`,
+    andElimLeftDesc: () => `\\text{Par quoi remplacer }A \\land B\\text{ ?}`,
+    andElimRightDesc: () => `\\text{Par quoi remplacer }A \\land B\\text{ ?}`,
+    orElimDesc: `\\text{Par quoi remplacer }A \\lor B\\text{ ?}`,
+    negElimDesc: `\\text{Par quoi remplacer }A\\text{ ?}`,
 
     // Messages
     noGoalSelected: 'Aucun but sélectionné',
@@ -192,6 +204,18 @@ const translations: Record<Language, Translations> = {
     nothingToUndo: 'Rien à annuler',
     unknownError: 'Erreur inconnue',
     proofCompletedWithAxioms: 'Preuve terminée.',
+    proofHypothesisNotInContext: 'Hypothèse non disponible dans le contexte courant',
+    proofHypothesisGoalMismatch: 'L\'hypothèse ne correspond pas au but',
+    proofGoalNotImplication: 'Le but n\'est pas une implication',
+    proofSelectedNotImplication: 'La formule sélectionnée n\'est pas une implication',
+    proofImplicationConclusionMismatch: 'La conclusion de l\'implication ne correspond pas au but',
+    proofGoalNotConjunction: 'Le but n\'est pas une conjonction',
+    proofSelectedNotConjunction: 'La formule sélectionnée n\'est pas une conjonction',
+    proofConjunctionLeftMismatch: 'Le côté gauche de la conjonction ne correspond pas au but',
+    proofConjunctionRightMismatch: 'Le côté droit de la conjonction ne correspond pas au but',
+    proofGoalNotDisjunction: 'Le but n\'est pas une disjonction',
+    proofSelectedNotDisjunction: 'La formule sélectionnée n\'est pas une disjonction',
+    proofGoalNotNegation: 'Le but n\'est pas une négation',
 
     // Completion modal
     proofComplete: 'Preuve terminée !',
@@ -270,18 +294,18 @@ const translations: Record<Language, Translations> = {
     axiom: 'Axiom',
 
     // Modal titles
-    implElimTitle: '→ Elimination (Modus Ponens)',
-    andElimLeftTitle: '∧ Elimination Left',
-    andElimRightTitle: '∧ Elimination Right',
-    orElimTitle: '∨ Elimination',
-    negElimTitle: '¬ Elimination',
+    implElimTitle: '\\to_{e}',
+    andElimLeftTitle: '\\wedge_{e}^{1}',
+    andElimRightTitle: '\\wedge_{e}^{2}',
+    orElimTitle: '\\vee_{e}',
+    negElimTitle: '\\neg_{e}',
 
     // Modal descriptions
-    implElimDesc: (goal) => `Enter the implication A → ${goal}:`,
-    andElimLeftDesc: (goal) => `Enter the conjunction ${goal} ∧ B:`,
-    andElimRightDesc: (goal) => `Enter the conjunction A ∧ ${goal}:`,
-    orElimDesc: 'Enter the disjunction A ∨ B to do case analysis on:',
-    negElimDesc: 'Enter the formula A (you will need to prove both A and ¬A):',
+    implElimDesc: () => `\\text{What should replace }A \\to B\\text{ ?}`,
+    andElimLeftDesc: () => `\\text{What should replace }A \\land B\\text{ ?}`,
+    andElimRightDesc: () => `\\text{What should replace }A \\land B\\text{ ?}`,
+    orElimDesc: `\\text{What should replace }A \\lor B\\text{ ?}`,
+    negElimDesc: `\\text{What should replace }A\\text{ ?}`,
 
     // Messages
     noGoalSelected: 'No goal selected',
@@ -292,6 +316,18 @@ const translations: Record<Language, Translations> = {
     nothingToUndo: 'Nothing to undo',
     unknownError: 'Unknown error',
     proofCompletedWithAxioms: 'Proof tree completed.',
+    proofHypothesisNotInContext: 'Hypothesis not available in current context',
+    proofHypothesisGoalMismatch: 'Hypothesis does not match the goal',
+    proofGoalNotImplication: 'Goal is not an implication',
+    proofSelectedNotImplication: 'Selected formula is not an implication',
+    proofImplicationConclusionMismatch: 'Conclusion of implication does not match the goal',
+    proofGoalNotConjunction: 'Goal is not a conjunction',
+    proofSelectedNotConjunction: 'Selected formula is not a conjunction',
+    proofConjunctionLeftMismatch: 'Left side of conjunction does not match the goal',
+    proofConjunctionRightMismatch: 'Right side of conjunction does not match the goal',
+    proofGoalNotDisjunction: 'Goal is not a disjunction',
+    proofSelectedNotDisjunction: 'Selected formula is not a disjunction',
+    proofGoalNotNegation: 'Goal is not a negation',
 
     // Completion modal
     proofComplete: 'Proof Complete!',

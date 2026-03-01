@@ -44,7 +44,7 @@ const ruleImageByRule: Record<string, string> = {
   'axiom': 'assets/rules/axiom.png'
 };
 
-const ruleRelativeWidthPct: Record<string, number> = {
+export const ruleRelativeWidthPct: Record<string, number> = {
   'impl-intro': 58,
   'impl-elim': 94,
   'and-intro': 72,
@@ -162,7 +162,7 @@ export const RulePanel: React.FC<RulePanelProps> = ({ onRuleClick, className = '
 
   if (compact) {
     return (
-      <div className={`bg-white border-2 border-slate-200 dark:bg-slate-800 dark:border-2 dark:border-slate-700 rounded-xl px-2 py-4 mb-4 shadow-lg ${className}`}>
+      <div className={`bg-white dark:bg-slate-800 rounded-xl px-2 py-4 mb-4 ${className}`}>
         <div className="grid grid-cols-2 gap-4 items-start">
           <div>
             <h4 className="font-semibold text-slate-700 dark:text-slate-200 mb-3 text-xs uppercase tracking-wide text-center">{t.introductionRules}</h4>
