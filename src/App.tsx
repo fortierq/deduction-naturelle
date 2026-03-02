@@ -177,6 +177,7 @@ const App: React.FC = () => {
   const handleNodeClick = useCallback((node: ProofNode) => {
     if (!node.rule && !node.isComplete && proofTree) {
       proofTree.selectedNode = node;
+      setIsRulesDrawerOpen(true);
       forceUpdate();
     }
   }, [proofTree, forceUpdate]);
@@ -333,6 +334,13 @@ const App: React.FC = () => {
 
     handleResult(result);
   }, [proofTree, showMessage, handleResult, t]);
+
+  const handleRuleClick = useCallback((ruleName: string) => {
+    applyRule(ruleName);
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      setIsRulesDrawerOpen(false);
+    }
+  }, [applyRule]);
 
   const toggleDarkMode = useCallback(() => {
     setIsDarkMode(prev => !prev);
@@ -558,7 +566,7 @@ const App: React.FC = () => {
             </label>
 
             <RulePanel
-              onRuleClick={applyRule}
+                onRuleClick={handleRuleClick}
               className="mb-0 shadow-none w-full flex-1 overflow-y-auto px-3 pb-3"
               compact
               showRuleTrees={showRuleTrees}
