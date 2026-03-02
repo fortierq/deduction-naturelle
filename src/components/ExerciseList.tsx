@@ -111,7 +111,7 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
     if (!isDrawerResizing) return;
 
     const handleMouseMove = (event: MouseEvent) => {
-      const nextWidth = Math.min(620, Math.max(320, event.clientX));
+      const nextWidth = Math.min(620, Math.max(240, event.clientX));
       onDrawerWidthChange(nextWidth);
     };
 
@@ -139,7 +139,7 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
       />
       
       {/* Drawer */}
-      <div className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-slate-900 dark:border-r-2 dark:border-slate-700 z-40 transform transition-transform duration-300 ease-out md:translate-x-0 ${
+      <div className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-slate-900 dark:border-r-2 dark:border-slate-700 z-40 transform transition-transform duration-300 ease-out ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`} style={{ width: mobileDrawerWidth, maxWidth: `${drawerWidth}px` }}>
         <div className="flex flex-col h-full">
@@ -148,7 +148,7 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 text-center">{t.filters}</h3>
             <button
               onClick={onClose}
-              className="absolute right-4 p-2 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors md:hidden"
+              className="absolute right-4 p-2 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
             >
               <svg className="w-5 h-5 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -258,7 +258,8 @@ interface ExerciseListProps {
   onCreateCustomSequent: (goal: string, hypotheses: string[]) => void;
   drawerWidth: number;
   onDrawerWidthChange: (width: number) => void;
-  openDrawerSignal: number;
+  isDrawerOpen: boolean;
+  onDrawerOpenChange: (isOpen: boolean) => void;
 }
 
 export const ExerciseList: React.FC<ExerciseListProps> = ({
@@ -267,10 +268,10 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
   onCreateCustomSequent,
   drawerWidth,
   onDrawerWidthChange,
-  openDrawerSignal
+  isDrawerOpen,
+  onDrawerOpenChange
 }) => {
   const { t } = useLanguage();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedDifficulties, setSelectedDifficulties] = useState<Set<string>>(new Set(difficultyOptions));
   const [selectedOperators, setSelectedOperators] = useState<Set<OperatorFilter>>(new Set(operatorOptions));
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
@@ -295,12 +296,6 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
   useEffect(() => {
     setShuffledExercises(null);
   }, [exercises, selectedDifficulties, selectedOperators]);
-
-  useEffect(() => {
-    if (openDrawerSignal > 0) {
-      setIsDrawerOpen(true);
-    }
-  }, [openDrawerSignal]);
 
   const displayedExercises = shuffledExercises ?? filteredExercises;
 
@@ -400,7 +395,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
       {/* Filter Drawer */}
       <FilterDrawer
         isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
+        onClose={() => onDrawerOpenChange(false)}
         onOpenCustomSequent={() => setIsCustomModalOpen(true)}
         onShuffleExercises={handleShuffleExercises}
         selectedDifficulties={selectedDifficulties}

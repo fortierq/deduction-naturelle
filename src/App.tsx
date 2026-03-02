@@ -59,11 +59,14 @@ const App: React.FC = () => {
   const [message, setMessage] = useState<Message | null>(null);
   const [modalState, setModalState] = useState<ModalConfig | null>(null);
   const [isRulesDrawerOpen, setIsRulesDrawerOpen] = useState(false);
-  const [openFiltersSignal, setOpenFiltersSignal] = useState(0);
+  const [isFiltersDrawerOpen, setIsFiltersDrawerOpen] = useState(
+    () => window.matchMedia('(min-width: 768px)').matches
+  );
   const [showRuleTrees, setShowRuleTrees] = useState(true);
   const [drawerWidth, setDrawerWidth] = useState(420);
   const [isRulesDrawerResizing, setIsRulesDrawerResizing] = useState(false);
-  const desktopDrawerOffset = drawerWidth + 16;
+  const isLeftPanelOpen = currentExercise ? isRulesDrawerOpen : isFiltersDrawerOpen;
+  const desktopDrawerOffset = isLeftPanelOpen ? drawerWidth + 16 : 0;
   const mobileDrawerWidth = `min(${drawerWidth}px, calc(100vw - 1rem))`;
 
   const proofMessages = useCallback(() => {
@@ -101,15 +104,19 @@ const App: React.FC = () => {
   const selectExercise = useCallback((exercise: Exercise) => {
     const parsed = parseExercise(exercise);
     const tree = new ProofTree(parsed.goalFormula, parsed.hypothesesFormulas, proofMessages());
+    const isSmallScreen = window.matchMedia('(max-width: 767px)').matches;
     setCurrentExercise(exercise);
     setParsedExercise(parsed);
     setProofTree(tree);
     proofTreeRef.current = tree;
+    setIsRulesDrawerOpen(!isSmallScreen);
+    setIsFiltersDrawerOpen(false);
     setMessage(null);
   }, [proofMessages]);
 
   const createCustomSequent = useCallback((goal: string, hypotheses: string[]) => {
     try {
+      const isSmallScreen = window.matchMedia('(max-width: 767px)').matches;
       const customExercise: Exercise = {
         id: Date.now(),
         title: t.customSequentTitle,
@@ -130,6 +137,8 @@ const App: React.FC = () => {
       setParsedExercise(parsed);
       setProofTree(tree);
       proofTreeRef.current = tree;
+      setIsRulesDrawerOpen(!isSmallScreen);
+      setIsFiltersDrawerOpen(false);
       setMessage(null);
     } catch (e) {
       showMessage(`${t.invalidFormula}: ${(e as Error).message}`, 'error');
@@ -149,6 +158,8 @@ const App: React.FC = () => {
     setCurrentExercise(null);
     setParsedExercise(null);
     setProofTree(null);
+    setIsRulesDrawerOpen(false);
+    setIsFiltersDrawerOpen(window.matchMedia('(min-width: 768px)').matches);
     setMessage(null);
   }, []);
 
@@ -346,11 +357,19 @@ const App: React.FC = () => {
     setIsDarkMode(prev => !prev);
   }, []);
 
+  const toggleLeftPanel = useCallback(() => {
+    if (currentExercise) {
+      setIsRulesDrawerOpen(true);
+      return;
+    }
+    setIsFiltersDrawerOpen(true);
+  }, [currentExercise]);
+
   useEffect(() => {
     if (!isRulesDrawerResizing) return;
 
     const handleMouseMove = (event: MouseEvent) => {
-      const nextWidth = Math.min(620, Math.max(320, event.clientX));
+      const nextWidth = Math.min(620, Math.max(240, event.clientX));
       setDrawerWidth(nextWidth);
     };
 
@@ -374,7 +393,10 @@ const App: React.FC = () => {
         style={{ ['--drawer-offset' as string]: `${desktopDrawerOffset}px` } as React.CSSProperties}
       >
         <div className="max-w-[112rem] mx-auto flex items-center justify-between gap-2 sm:gap-4">
-          <h1 className="text-lg sm:text-2xl md:text-3xl font-bold leading-tight pr-2">{t.appTitle}</h1>
+          <h1 className="text-base sm:text-lg md:text-2xl font-bold leading-tight pr-2">
+            <span className="md:hidden">Deduction naturelle</span>
+            <span className="hidden md:inline">{t.appTitle}</span>
+          </h1>
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={backToExercises}
@@ -384,22 +406,6 @@ const App: React.FC = () => {
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l9-9 9 9M4.5 10.5V21h15v-10.5" />
-              </svg>
-            </button>
-            <button
-              onClick={() => {
-                if (currentExercise) {
-                  setIsRulesDrawerOpen(true);
-                } else {
-                  setOpenFiltersSignal(v => v + 1);
-                }
-              }}
-              title={currentExercise ? t.inferenceRules : t.filters}
-              aria-label={currentExercise ? t.inferenceRules : t.filters}
-              className={`${isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-100 border-slate-700' : 'bg-white/15 hover:bg-white/25 text-white border-white/30'} inline-flex items-center justify-center w-11 h-11 rounded-xl border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent md:hidden`}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
             <a
@@ -446,7 +452,8 @@ const App: React.FC = () => {
             onCreateCustomSequent={createCustomSequent}
             drawerWidth={drawerWidth}
             onDrawerWidthChange={setDrawerWidth}
-            openDrawerSignal={openFiltersSignal}
+            isDrawerOpen={isFiltersDrawerOpen}
+            onDrawerOpenChange={setIsFiltersDrawerOpen}
           />
         ) : (
           <>
@@ -526,6 +533,19 @@ const App: React.FC = () => {
         )}
       </main>
 
+      {!isLeftPanelOpen && (
+        <button
+          onClick={toggleLeftPanel}
+          title={currentExercise ? t.inferenceRules : t.filters}
+          aria-label={currentExercise ? t.inferenceRules : t.filters}
+          className="fixed z-50 top-20 left-0 h-10 w-7 rounded-r-xl border-2 border-l-0 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:text-blue-700 hover:bg-blue-50 dark:hover:text-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      )}
+
       {currentExercise && (
         <>
           <div
@@ -536,16 +556,25 @@ const App: React.FC = () => {
           />
 
           <aside
-            className={`fixed top-0 left-0 h-full flex flex-col bg-white dark:bg-slate-800 dark:border-r dark:border-slate-700 z-40 transform transition-transform duration-300 ease-out md:translate-x-0 ${
+            className={`fixed top-0 left-0 h-full flex flex-col bg-white dark:bg-slate-800 dark:border-r dark:border-slate-700 z-40 transform transition-transform duration-300 ease-out ${
               isRulesDrawerOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
             style={{ width: mobileDrawerWidth, maxWidth: `${drawerWidth}px` }}
           >
-            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 md:hidden">
-              <div className="w-6" aria-hidden="true" />
+            <div className="px-3 pt-3 mb-4 grid grid-cols-[2.25rem_1fr_2.25rem] items-center gap-2">
+              <div className="w-9 h-9" aria-hidden="true" />
+              <label className="justify-self-center flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+                <input
+                  type="checkbox"
+                  checked={showRuleTrees}
+                  onChange={(e) => setShowRuleTrees(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <span>{t.showRuleTrees}</span>
+              </label>
               <button
                 onClick={() => setIsRulesDrawerOpen(false)}
-                className="p-2 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                className="justify-self-end p-2 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                 aria-label={t.cancel}
                 title={t.cancel}
               >
@@ -554,16 +583,6 @@ const App: React.FC = () => {
                 </svg>
               </button>
             </div>
-
-            <label className="px-3 pt-3 flex items-center justify-center gap-2 mb-4 text-sm text-slate-700 dark:text-slate-200">
-              <input
-                type="checkbox"
-                checked={showRuleTrees}
-                onChange={(e) => setShowRuleTrees(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-              />
-              <span>{t.showRuleTrees}</span>
-            </label>
 
             <RulePanel
                 onRuleClick={handleRuleClick}
