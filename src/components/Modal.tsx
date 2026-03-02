@@ -42,6 +42,8 @@ interface FormulaInputModalProps {
   imageWidthPct?: number;
   selectionHint?: string;
   placeholder: string;
+  formulaTemplate?: string;
+  variableNames?: string[];
   onSubmit: (formula: Formula) => void;
   onError: (message: string) => void;
 }
@@ -54,23 +56,54 @@ export const FormulaInputModal: React.FC<FormulaInputModalProps> = ({
   imageWidthPct = 100,
   selectionHint,
   placeholder,
+  formulaTemplate,
+  variableNames,
   onSubmit,
   onError
 }) => {
   const { t } = useLanguage();
   const [value, setValue] = useState('');
+  const [variableValues, setVariableValues] = useState<Record<string, string>>({});
   const inputRef = useRef<HTMLInputElement>(null);
+  const firstVariableInputRef = useRef<HTMLInputElement>(null);
+  const resolvedVariableNames = variableNames ?? [];
+  const usesVariableInputs = resolvedVariableNames.length > 0;
 
   useEffect(() => {
     if (isOpen) {
       setValue('');
-      setTimeout(() => inputRef.current?.focus(), 100);
+      if (usesVariableInputs) {
+        const nextValues: Record<string, string> = {};
+        resolvedVariableNames.forEach((variableName) => {
+          nextValues[variableName] = '';
+        });
+        setVariableValues(nextValues);
+        setTimeout(() => firstVariableInputRef.current?.focus(), 100);
+      } else {
+        setTimeout(() => inputRef.current?.focus(), 100);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, usesVariableInputs, resolvedVariableNames]);
 
   const handleSubmit = () => {
     try {
-      const formula = FormulaParser.parse(value);
+      let formulaText = value;
+
+      if (usesVariableInputs) {
+        const template = formulaTemplate ?? placeholder;
+        formulaText = template;
+
+        for (const variableName of resolvedVariableNames) {
+          const variableValue = (variableValues[variableName] ?? '').trim();
+          if (!variableValue) {
+            onError(`${t.invalidFormula}: ${variableName}`);
+            return;
+          }
+          formulaText = formulaText.split(`{${variableName}}`).join(`(${variableValue})`);
+        }
+      }
+
+      const formula = FormulaParser.parse(formulaText);
       onSubmit(formula);
       onClose();
     } catch (e) {
@@ -106,19 +139,44 @@ export const FormulaInputModal: React.FC<FormulaInputModalProps> = ({
           <Latex math={selectionHint} />
         </div>
       )}
-      <input
-        ref={inputRef}
-        type="text"
-        className="modal-input"
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-      />
+      {usesVariableInputs ? (
+        <div className={resolvedVariableNames.length === 2 ? 'grid grid-cols-2 gap-3' : 'space-y-3'}>
+          {resolvedVariableNames.map((variableName, index) => (
+            <div key={variableName}>
+              <label className="block text-sm text-slate-700 dark:text-slate-300 mb-1">{variableName}</label>
+              <input
+                ref={index === 0 ? firstVariableInputRef : undefined}
+                type="text"
+                className="modal-input"
+                placeholder={variableName}
+                value={variableValues[variableName] ?? ''}
+                onChange={(e) => {
+                  const nextValue = e.target.value;
+                  setVariableValues(prev => ({
+                    ...prev,
+                    [variableName]: nextValue
+                  }));
+                }}
+                onKeyDown={handleKeyDown}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <input
+          ref={inputRef}
+          type="text"
+          className="modal-input"
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+      )}
       <p className="text-sm text-slate-500 mt-2 dark:text-slate-400">
         {t.customSequentSyntaxHelp}
       </p>
-      <div className="flex gap-3 justify-end mt-4">
+      <div className="flex gap-3 justify-center mt-4">
         <button className="modal-btn-cancel" onClick={onClose}>{t.cancel}</button>
         <button className="modal-btn-confirm" onClick={handleSubmit}>{t.confirm}</button>
       </div>
@@ -158,7 +216,7 @@ export const HypothesisSelectModal: React.FC<HypothesisSelectModalProps> = ({
           {hyp.toDisplayString()}
         </button>
       ))}
-      <div className="flex gap-3 justify-end mt-4">
+      <div className="flex gap-3 justify-center mt-4">
         <button className="modal-btn-cancel" onClick={onClose}>{t.cancel}</button>
       </div>
     </Modal>

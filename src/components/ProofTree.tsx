@@ -1,25 +1,10 @@
 // Proof tree display component with proper inference lines
 
 import React, { useRef, useEffect, useState } from 'react';
-import { ProofNode, RuleName } from '../proof';
+import { ProofNode } from '../proof';
 import { Formula } from '../formulas';
 import { Latex } from './Latex';
-
-const ruleLabelLatexByRule: Record<RuleName, string> = {
-  'axiom': '\\mathrm{ax}',
-  '→I': '\\to_{i}',
-  '→E': '\\to_{e}',
-  '∧I': '\\wedge_{i}',
-  '∧E₁': '\\wedge_{e}^{1}',
-  '∧E₂': '\\wedge_{e}^{2}',
-  '∨I₁': '\\vee_{i}^{1}',
-  '∨I₂': '\\vee_{i}^{2}',
-  '∨E': '\\vee_{e}',
-  '¬I': '\\neg_{i}',
-  '¬E': '\\neg_{e}',
-  '⊥E': '\\bot_{e}',
-  'raa': '\\mathrm{raa}',
-};
+import { ruleLabelLatexByProofRule } from '../ruleLabels';
 
 interface ProofNodeDisplayProps {
   node: ProofNode;
@@ -85,7 +70,7 @@ export const ProofNodeDisplay: React.FC<ProofNodeDisplayProps> = ({ node, select
 
   const getRuleLabel = () => {
     if (!node.rule) return { ruleLatex: '' };
-    const ruleLatex = ruleLabelLatexByRule[node.rule] ?? `\\mathrm{${node.rule}}`;
+    const ruleLatex = ruleLabelLatexByProofRule[node.rule] ?? `\\mathrm{${node.rule}}`;
     return { ruleLatex };
   };
 

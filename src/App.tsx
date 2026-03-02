@@ -6,11 +6,9 @@ import { ProofTree, ProofResult, ProofNode, ProofMessageKey } from './proof';
 import { Exercise, ParsedExercise, exercises, parseExercise } from './exercises';
 import { 
   ExerciseList, 
-  FormulaInputModal, 
   ProofNodeDisplay,
   RulePanel
 } from './components';
-import { ruleRelativeWidthPct } from './components/RulePanel';
 import { useLanguage, LanguageSelector } from './i18n';
 
 type MessageType = 'success' | 'error' | 'info';
@@ -22,29 +20,10 @@ interface Message {
 
 type ModalAction = 'impl-elim' | 'and-elim-left' | 'and-elim-right' | 'or-elim' | 'neg-elim';
 
-const modalImageByAction: Record<ModalAction, string> = {
-  'impl-elim': 'assets/rules/imp_elim.png',
-  'and-elim-left': 'assets/rules/and_elim_left.png',
-  'and-elim-right': 'assets/rules/and_elim_right.png',
-  'or-elim': 'assets/rules/or_elim.png',
-  'neg-elim': 'assets/rules/neg_elim.png'
-};
-
-const modalImageScale = 0.6;
-
-const modalImageWidthByAction: Record<ModalAction, number> = {
-  'impl-elim': Math.round(ruleRelativeWidthPct['impl-elim'] * modalImageScale),
-  'and-elim-left': Math.round(ruleRelativeWidthPct['and-elim-left'] * modalImageScale),
-  'and-elim-right': Math.round(ruleRelativeWidthPct['and-elim-right'] * modalImageScale),
-  'or-elim': Math.round(ruleRelativeWidthPct['or-elim'] * 0.8),
-  'neg-elim': Math.round(ruleRelativeWidthPct['neg-elim'] * modalImageScale)
-};
-
 interface ModalConfig {
-  isOpen: boolean;
-  title: string;
-  selectionHint: string;
   placeholder: string;
+  formulaTemplate?: string;
+  variableNames?: string[];
   action: ModalAction;
 }
 
@@ -58,11 +37,12 @@ const App: React.FC = () => {
   const [, setVersion] = useState(0); // Used to trigger re-renders
   const [message, setMessage] = useState<Message | null>(null);
   const [modalState, setModalState] = useState<ModalConfig | null>(null);
+  const [panelModalValues, setPanelModalValues] = useState<Record<string, string>>({});
+  const panelModalFirstInputRef = useRef<HTMLInputElement | null>(null);
   const [isRulesDrawerOpen, setIsRulesDrawerOpen] = useState(false);
   const [isFiltersDrawerOpen, setIsFiltersDrawerOpen] = useState(
     () => window.matchMedia('(min-width: 768px)').matches
   );
-  const [showRuleTrees, setShowRuleTrees] = useState(true);
   const [drawerWidth, setDrawerWidth] = useState(420);
   const [isRulesDrawerResizing, setIsRulesDrawerResizing] = useState(false);
   const isLeftPanelOpen = currentExercise ? isRulesDrawerOpen : isFiltersDrawerOpen;
@@ -232,7 +212,78 @@ const App: React.FC = () => {
     }
     handleResult(result);
     setModalState(null);
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      setIsRulesDrawerOpen(false);
+    }
   }, [modalState, handleResult]);
+
+  const submitPanelRuleInput = useCallback(() => {
+    if (!modalState) return;
+
+    try {
+      const variableNames = modalState.variableNames ?? [];
+      let formulaText = '';
+
+      if (variableNames.length > 0) {
+        formulaText = modalState.formulaTemplate ?? modalState.placeholder;
+        for (const variableName of variableNames) {
+          const variableValue = (panelModalValues[variableName] ?? '').trim();
+          if (!variableValue) {
+            showMessage(`${t.invalidFormula}: ${variableName}`, 'error');
+            return;
+          }
+          formulaText = formulaText.split(`{${variableName}}`).join(`(${variableValue})`);
+        }
+      } else {
+        formulaText = (panelModalValues.formula ?? '').trim();
+        if (!formulaText) {
+          showMessage(`${t.invalidFormula}: ${modalState.placeholder}`, 'error');
+          return;
+        }
+      }
+
+      const formula = FormulaParser.parse(formulaText);
+      handleModalSubmit(formula);
+    } catch (e) {
+      showMessage(`${t.invalidFormula}: ${(e as Error).message}`, 'error');
+    }
+  }, [modalState, panelModalValues, handleModalSubmit, showMessage, t]);
+
+  const handlePanelRuleInputKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      submitPanelRuleInput();
+    } else if (e.key === 'Escape') {
+      setModalState(null);
+    }
+  }, [submitPanelRuleInput]);
+
+  useEffect(() => {
+    if (!modalState) {
+      setPanelModalValues({});
+      return;
+    }
+
+    const variableNames = modalState.variableNames ?? [];
+    if (variableNames.length > 0) {
+      const nextValues: Record<string, string> = {};
+      variableNames.forEach((variableName) => {
+        nextValues[variableName] = '';
+      });
+      setPanelModalValues(nextValues);
+      return;
+    }
+
+    setPanelModalValues({ formula: '' });
+  }, [modalState]);
+
+  useEffect(() => {
+    if (!modalState || !isRulesDrawerOpen) return;
+    const timeoutId = window.setTimeout(() => {
+      panelModalFirstInputRef.current?.focus();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [modalState, isRulesDrawerOpen]);
 
   const applyRule = useCallback((ruleName: string) => {
     if (!proofTree || !proofTree.selectedNode) {
@@ -262,10 +313,9 @@ const App: React.FC = () => {
       
       case 'impl-elim':
         setModalState({
-          isOpen: true,
-          title: t.implElimTitle,
-          selectionHint: t.implElimDesc(node.sequent.goal.toDisplayString()),
           placeholder: `A -> ${node.sequent.goal.toDisplayString()}`,
+          formulaTemplate: `{A} -> ${node.sequent.goal.toDisplayString()}`,
+          variableNames: ['A'],
           action: 'impl-elim'
         });
         return;
@@ -276,20 +326,18 @@ const App: React.FC = () => {
       
       case 'and-elim-left':
         setModalState({
-          isOpen: true,
-          title: t.andElimLeftTitle,
-          selectionHint: t.andElimLeftDesc(node.sequent.goal.toDisplayString()),
           placeholder: `${node.sequent.goal.toDisplayString()} & B`,
+          formulaTemplate: `${node.sequent.goal.toDisplayString()} & {B}`,
+          variableNames: ['B'],
           action: 'and-elim-left'
         });
         return;
       
       case 'and-elim-right':
         setModalState({
-          isOpen: true,
-          title: t.andElimRightTitle,
-          selectionHint: t.andElimRightDesc(node.sequent.goal.toDisplayString()),
           placeholder: `A & ${node.sequent.goal.toDisplayString()}`,
+          formulaTemplate: `{A} & ${node.sequent.goal.toDisplayString()}`,
+          variableNames: ['A'],
           action: 'and-elim-right'
         });
         return;
@@ -304,10 +352,9 @@ const App: React.FC = () => {
       
       case 'or-elim':
         setModalState({
-          isOpen: true,
-          title: t.orElimTitle,
-          selectionHint: t.orElimDesc,
           placeholder: 'A | B',
+          formulaTemplate: '{A} | {B}',
+          variableNames: ['A', 'B'],
           action: 'or-elim'
         });
         return;
@@ -322,10 +369,9 @@ const App: React.FC = () => {
           return;
         }
         setModalState({
-          isOpen: true,
-          title: t.negElimTitle,
-          selectionHint: t.negElimDesc,
           placeholder: 'A',
+          formulaTemplate: '{A}',
+          variableNames: ['A'],
           action: 'neg-elim'
         });
         return;
@@ -348,7 +394,13 @@ const App: React.FC = () => {
 
   const handleRuleClick = useCallback((ruleName: string) => {
     applyRule(ruleName);
-    if (window.matchMedia('(max-width: 767px)').matches) {
+    const requiresInlineForm = ruleName === 'impl-elim'
+      || ruleName === 'and-elim-left'
+      || ruleName === 'and-elim-right'
+      || ruleName === 'or-elim'
+      || ruleName === 'neg-elim';
+
+    if (window.matchMedia('(max-width: 767px)').matches && !requiresInlineForm) {
       setIsRulesDrawerOpen(false);
     }
   }, [applyRule]);
@@ -563,15 +615,46 @@ const App: React.FC = () => {
           >
             <div className="px-3 pt-3 mb-4 grid grid-cols-[2.25rem_1fr_2.25rem] items-center gap-2">
               <div className="w-9 h-9" aria-hidden="true" />
-              <label className="justify-self-center flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
-                <input
-                  type="checkbox"
-                  checked={showRuleTrees}
-                  onChange={(e) => setShowRuleTrees(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                />
-                <span>{t.showRuleTrees}</span>
-              </label>
+              <div className="justify-self-center w-full max-w-md">
+                {modalState && (
+                  (modalState.variableNames && modalState.variableNames.length > 0) ? (
+                    <div className={`${modalState.variableNames.length === 2 ? 'grid grid-cols-2 gap-2' : 'flex justify-center'}`}>
+                      {modalState.variableNames.map((variableName, index) => (
+                        <div key={variableName}>
+                          <input
+                            ref={index === 0 ? panelModalFirstInputRef : undefined}
+                            type="text"
+                            className="modal-input text-center"
+                            placeholder={variableName}
+                            aria-label={variableName}
+                            value={panelModalValues[variableName] ?? ''}
+                            onChange={(e) => {
+                              const nextValue = e.target.value;
+                              setPanelModalValues(prev => ({
+                                ...prev,
+                                [variableName]: nextValue
+                              }));
+                            }}
+                            onKeyDown={handlePanelRuleInputKeyDown}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex justify-center">
+                      <input
+                        ref={panelModalFirstInputRef}
+                        type="text"
+                        className="modal-input text-center max-w-md"
+                        placeholder={modalState.placeholder}
+                        value={panelModalValues.formula ?? ''}
+                        onChange={(e) => setPanelModalValues({ formula: e.target.value })}
+                        onKeyDown={handlePanelRuleInputKeyDown}
+                      />
+                    </div>
+                  )
+                )}
+              </div>
               <button
                 onClick={() => setIsRulesDrawerOpen(false)}
                 className="justify-self-end p-2 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
@@ -584,11 +667,20 @@ const App: React.FC = () => {
               </button>
             </div>
 
+            {modalState && (
+              <div className="mx-3 mb-2">
+                <div className="flex gap-2 justify-center mt-1">
+                  <button className="modal-btn-cancel" onClick={() => setModalState(null)}>{t.cancel}</button>
+                  <button className="modal-btn-confirm" onClick={submitPanelRuleInput}>{t.confirm}</button>
+                </div>
+              </div>
+            )}
+
             <RulePanel
                 onRuleClick={handleRuleClick}
               className="mb-0 shadow-none w-full flex-1 overflow-y-auto px-3 pb-3"
               compact
-              showRuleTrees={showRuleTrees}
+              activeRule={modalState?.action}
             />
 
             <div
@@ -600,21 +692,6 @@ const App: React.FC = () => {
             />
           </aside>
         </>
-      )}
-
-      {/* Formula Input Modal */}
-      {modalState && (
-        <FormulaInputModal
-          isOpen={modalState.isOpen}
-          onClose={() => setModalState(null)}
-          title={modalState.title}
-          imageSrc={modalImageByAction[modalState.action]}
-          imageWidthPct={modalImageWidthByAction[modalState.action]}
-          selectionHint={modalState.selectionHint}
-          placeholder={modalState.placeholder}
-          onSubmit={handleModalSubmit}
-          onError={(msg) => showMessage(msg, 'error')}
-        />
       )}
     </div>
   );

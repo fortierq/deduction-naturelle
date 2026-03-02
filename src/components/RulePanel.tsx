@@ -9,72 +9,24 @@ import {
 } from './RuleTree';
 import { Latex } from './Latex';
 import { useLanguage } from '../i18n';
+import { panelRuleUiByRule, PanelRuleName } from '../ruleLabels';
 
 interface RulePanelProps {
   onRuleClick: (rule: string) => void;
   className?: string;
   compact?: boolean;
-  showRuleTrees?: boolean;
+  activeRule?: string;
 }
 
 interface RuleButtonProps {
-  rule: string;
+  rule: PanelRuleName;
   label: string;
   title: string;
   ruleDisplay: React.FC;
   onClick: (rule: string) => void;
   compact?: boolean;
-  imageSrc?: string;
-  showRuleTree?: boolean;
+  isActive?: boolean;
 }
-
-const ruleImageByRule: Record<string, string> = {
-  'impl-intro': 'assets/rules/imp_intro.png',
-  'impl-elim': 'assets/rules/imp_elim.png',
-  'and-intro': 'assets/rules/and_intro.png',
-  'and-elim-left': 'assets/rules/and_elim_left.png',
-  'and-elim-right': 'assets/rules/and_elim_right.png',
-  'or-intro-left': 'assets/rules/or_intro_left.png',
-  'or-intro-right': 'assets/rules/or_intro_right.png',
-  'or-elim': 'assets/rules/or_elim.png',
-  'neg-intro': 'assets/rules/neg_intro.png',
-  'neg-elim': 'assets/rules/neg_elim.png',
-  'absurd': 'assets/rules/bot_elim.png',
-  'raa': 'assets/rules/raa.png',
-  'axiom': 'assets/rules/axiom.png'
-};
-
-export const ruleRelativeWidthPct: Record<string, number> = {
-  'impl-intro': 58,
-  'impl-elim': 94,
-  'and-intro': 72,
-  'and-elim-left': 58,
-  'and-elim-right': 58,
-  'or-intro-left': 58,
-  'or-intro-right': 58,
-  'or-elim': 100,
-  'neg-intro': 46,
-  'neg-elim': 77,
-  'absurd': 37,
-  'raa': 56,
-  'axiom': 46
-};
-
-const ruleLabelLatexByRule: Record<string, string> = {
-  'impl-intro': '\\to_{i}',
-  'impl-elim': '\\to_{e}',
-  'and-intro': '\\wedge_{i}',
-  'and-elim-left': '\\wedge_{e}^{1}',
-  'and-elim-right': '\\wedge_{e}^{2}',
-  'or-intro-left': '\\vee_{i}^{1}',
-  'or-intro-right': '\\vee_{i}^{2}',
-  'or-elim': '\\vee_{e}',
-  'neg-intro': '\\neg_{i}',
-  'neg-elim': '\\neg_{e}',
-  'absurd': '\\bot_{e}',
-  'raa': '\\mathrm{raa}',
-  'axiom': '\\mathrm{ax}'
-};
 
 const RuleButton: React.FC<RuleButtonProps> = ({
   rule,
@@ -83,24 +35,25 @@ const RuleButton: React.FC<RuleButtonProps> = ({
   ruleDisplay: RuleDisplay,
   onClick,
   compact = false,
-  imageSrc,
-  showRuleTree = true
+  isActive = false
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
-  const imageWidthPct = ruleRelativeWidthPct[rule] ?? 100;
-  const latexLabel = ruleLabelLatexByRule[rule] ?? label;
+  const ruleUi = panelRuleUiByRule[rule];
+  const imageWidthPct = ruleUi.widthPct;
+  const imageSrc = ruleUi.imageSrc;
+  const latexLabel = ruleUi.latexLabel ?? label;
 
   if (compact) {
     return (
       <button
-        className={`w-full p-0.5 border-2 border-slate-300 dark:border-slate-700 rounded-lg hover:border-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:border-slate-500 dark:hover:text-slate-100 dark:hover:bg-slate-800 transition-colors flex flex-col ${showRuleTree ? 'h-[7.5rem]' : 'h-10 justify-center'}`}
+        className={`w-full p-0.5 border-2 rounded-lg transition-colors flex flex-col h-[7.5rem] ${isActive ? 'border-blue-500 text-blue-700 bg-blue-50 dark:border-slate-500 dark:text-slate-100 dark:bg-slate-700' : 'border-slate-300 dark:border-slate-700 hover:border-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:border-slate-500 dark:hover:text-slate-100 dark:hover:bg-slate-800'}`}
         title={title}
         onClick={() => onClick(rule)}
       >
         <div className="font-semibold text-slate-900 dark:text-slate-100 mb-0 flex justify-center">
           <Latex math={latexLabel} />
         </div>
-        {showRuleTree && imageSrc && (
+        {imageSrc && (
           <div className="flex-1 w-full flex items-center justify-center overflow-hidden">
             <img
               src={imageSrc}
@@ -135,10 +88,10 @@ const RuleButton: React.FC<RuleButtonProps> = ({
   );
 };
 
-export const RulePanel: React.FC<RulePanelProps> = ({ onRuleClick, className = '', compact = false, showRuleTrees = true }) => {
+export const RulePanel: React.FC<RulePanelProps> = ({ onRuleClick, className = '', compact = false, activeRule }) => {
   const { t } = useLanguage();
 
-  const introRules = [
+  const introRules: Array<{ rule: PanelRuleName; label: string; title: string; display: React.FC }> = [
     { rule: 'impl-intro', label: '→i', title: t.implIntro, display: ImplIntroRule },
     { rule: 'and-intro', label: '∧i', title: t.andIntro, display: AndIntroRule },
     { rule: 'or-intro-left', label: '∨i₁', title: t.orIntroLeft, display: OrIntroLeftRule },
@@ -146,7 +99,7 @@ export const RulePanel: React.FC<RulePanelProps> = ({ onRuleClick, className = '
     { rule: 'neg-intro', label: '¬i', title: t.negIntro, display: NegIntroRule }
   ];
 
-  const eliminationRules = [
+  const eliminationRules: Array<{ rule: PanelRuleName; label: string; title: string; display: React.FC }> = [
     { rule: 'impl-elim', label: '→e', title: t.implElim, display: ImplElimRule },
     { rule: 'and-elim-left', label: '∧e₁', title: t.andElimLeft, display: AndElimLeftRule },
     { rule: 'and-elim-right', label: '∧e₂', title: t.andElimRight, display: AndElimRightRule },
@@ -154,7 +107,7 @@ export const RulePanel: React.FC<RulePanelProps> = ({ onRuleClick, className = '
     { rule: 'neg-elim', label: '¬e', title: t.negElim, display: NegElimRule }
   ];
 
-  const otherRules = [
+  const otherRules: Array<{ rule: PanelRuleName; label: string; title: string; display: React.FC }> = [
     { rule: 'axiom', label: 'Ax', title: t.axiom, display: AxiomRule },
     { rule: 'absurd', label: '⊥E', title: t.absurd, display: AbsurdRule },
     { rule: 'raa', label: 'raa', title: t.raa, display: raaRule }
@@ -176,8 +129,7 @@ export const RulePanel: React.FC<RulePanelProps> = ({ onRuleClick, className = '
                   ruleDisplay={display}
                   onClick={onRuleClick}
                   compact
-                  imageSrc={ruleImageByRule[rule]}
-                  showRuleTree={showRuleTrees}
+                  isActive={activeRule === rule}
                 />
               ))}
             </div>
@@ -195,8 +147,7 @@ export const RulePanel: React.FC<RulePanelProps> = ({ onRuleClick, className = '
                   ruleDisplay={display}
                   onClick={onRuleClick}
                   compact
-                  imageSrc={ruleImageByRule[rule]}
-                  showRuleTree={showRuleTrees}
+                  isActive={activeRule === rule}
                 />
               ))}
             </div>
@@ -214,8 +165,7 @@ export const RulePanel: React.FC<RulePanelProps> = ({ onRuleClick, className = '
                   ruleDisplay={display}
                   onClick={onRuleClick}
                   compact
-                  imageSrc={ruleImageByRule[rule]}
-                  showRuleTree={showRuleTrees}
+                  isActive={activeRule === rule}
                 />
               ))}
             </div>

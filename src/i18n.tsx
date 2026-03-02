@@ -68,20 +68,6 @@ interface Translations {
   raa: string;
   axiom: string;
   
-  // Modal titles
-  implElimTitle: string;
-  andElimLeftTitle: string;
-  andElimRightTitle: string;
-  orElimTitle: string;
-  negElimTitle: string;
-  
-  // Modal descriptions
-  implElimDesc: (goal: string) => string;
-  andElimLeftDesc: (goal: string) => string;
-  andElimRightDesc: (goal: string) => string;
-  orElimDesc: string;
-  negElimDesc: string;
-  
   // Messages
   noGoalSelected: string;
   noHypothesisMatches: (goal: string) => string;
@@ -181,20 +167,6 @@ const translations: Record<Language, Translations> = {
     raa: 'raa (Raisonnement par l\'absurde)',
     axiom: 'Axiome',
 
-    // Modal titles
-    implElimTitle: '\\to_{e}',
-    andElimLeftTitle: '\\wedge_{e}^{1}',
-    andElimRightTitle: '\\wedge_{e}^{2}',
-    orElimTitle: '\\vee_{e}',
-    negElimTitle: '\\neg_{e}',
-
-    // Modal descriptions
-    implElimDesc: () => `\\text{Par quoi remplacer }A \\to B\\text{ ?}`,
-    andElimLeftDesc: () => `\\text{Par quoi remplacer }A \\land B\\text{ ?}`,
-    andElimRightDesc: () => `\\text{Par quoi remplacer }A \\land B\\text{ ?}`,
-    orElimDesc: `\\text{Par quoi remplacer }A \\lor B\\text{ ?}`,
-    negElimDesc: `\\text{Par quoi remplacer }A\\text{ ?}`,
-
     // Messages
     noGoalSelected: 'Aucun but sélectionné',
     noHypothesisMatches: (goal) => `Aucune hypothèse ne correspond au but : ${goal}`,
@@ -292,20 +264,6 @@ const translations: Record<Language, Translations> = {
     absurd: 'Ex Falso',
     raa: 'raa (Reductio ad Absurdum)',
     axiom: 'Axiom',
-
-    // Modal titles
-    implElimTitle: '\\to_{e}',
-    andElimLeftTitle: '\\wedge_{e}^{1}',
-    andElimRightTitle: '\\wedge_{e}^{2}',
-    orElimTitle: '\\vee_{e}',
-    negElimTitle: '\\neg_{e}',
-
-    // Modal descriptions
-    implElimDesc: () => `\\text{What should replace }A \\to B\\text{ ?}`,
-    andElimLeftDesc: () => `\\text{What should replace }A \\land B\\text{ ?}`,
-    andElimRightDesc: () => `\\text{What should replace }A \\land B\\text{ ?}`,
-    orElimDesc: `\\text{What should replace }A \\lor B\\text{ ?}`,
-    negElimDesc: `\\text{What should replace }A\\text{ ?}`,
 
     // Messages
     noGoalSelected: 'No goal selected',
