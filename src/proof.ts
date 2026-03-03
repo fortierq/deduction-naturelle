@@ -42,7 +42,7 @@ export class ProofNode {
         const node = new ProofNode(this.sequent.clone());
         node.id = this.id;
         node.rule = this.rule;
-        node.premises = this.premises.map(p => p.clone());
+        node.premises = [];
         node.isComplete = this.isComplete;
         
         if (this.dischargedAssumption) {
@@ -123,19 +123,6 @@ export class ProofTree {
             ...defaultProofMessages,
             ...messages
         };
-        this.autoApplyAxiomsFromSelection();
-    }
-
-    private canAutoApplyAxiom(node: ProofNode): boolean {
-        return !node.isComplete && node.rule === null && node.sequent.hasInContext(node.sequent.goal);
-    }
-
-    private autoApplyAxiomsFromSelection(): void {
-        while (this.selectedNode && this.canAutoApplyAxiom(this.selectedNode)) {
-            this.selectedNode.rule = 'axiom';
-            this.selectedNode.isComplete = true;
-            this.selectedNode = this.findFirstOpenGoal();
-        }
     }
 
     private fail(key: ProofMessageKey): ProofResult {
@@ -214,7 +201,6 @@ export class ProofTree {
         node.rule = 'axiom';
         node.isComplete = true;
         this.selectedNode = this.findFirstOpenGoal();
-        this.autoApplyAxiomsFromSelection();
         return { success: true };
     }
 
@@ -239,7 +225,6 @@ export class ProofTree {
         node.dischargedAssumption = { formula: antecedent };
         
         this.selectedNode = premise;
-        this.autoApplyAxiomsFromSelection();
         return { success: true };
     }
 
@@ -264,7 +249,6 @@ export class ProofTree {
         node.premises = [premise1, premise2];
         
         this.selectedNode = premise1;
-        this.autoApplyAxiomsFromSelection();
         return { success: true };
     }
 
@@ -286,7 +270,6 @@ export class ProofTree {
         node.premises = [premise1, premise2];
         
         this.selectedNode = premise1;
-        this.autoApplyAxiomsFromSelection();
         return { success: true };
     }
 
@@ -310,7 +293,6 @@ export class ProofTree {
         node.premises = [premise];
         
         this.selectedNode = premise;
-        this.autoApplyAxiomsFromSelection();
         return { success: true };
     }
 
@@ -334,7 +316,6 @@ export class ProofTree {
         node.premises = [premise];
         
         this.selectedNode = premise;
-        this.autoApplyAxiomsFromSelection();
         return { success: true };
     }
 
@@ -355,7 +336,6 @@ export class ProofTree {
         node.premises = [premise];
         
         this.selectedNode = premise;
-        this.autoApplyAxiomsFromSelection();
         return { success: true };
     }
 
@@ -376,7 +356,6 @@ export class ProofTree {
         node.premises = [premise];
         
         this.selectedNode = premise;
-        this.autoApplyAxiomsFromSelection();
         return { success: true };
     }
 
@@ -402,7 +381,6 @@ export class ProofTree {
         node.dischargedAssumption = { left, right };
         
         this.selectedNode = premise1;
-        this.autoApplyAxiomsFromSelection();
         return { success: true };
     }
 
@@ -426,7 +404,6 @@ export class ProofTree {
         node.dischargedAssumption = { formula: inner };
         
         this.selectedNode = premise;
-        this.autoApplyAxiomsFromSelection();
         return { success: true };
     }
 
@@ -449,7 +426,6 @@ export class ProofTree {
         node.premises = [premise1, premise2];
         
         this.selectedNode = premise1;
-        this.autoApplyAxiomsFromSelection();
         return { success: true };
     }
 
@@ -465,7 +441,6 @@ export class ProofTree {
         node.premises = [premise];
         
         this.selectedNode = premise;
-        this.autoApplyAxiomsFromSelection();
         return { success: true };
     }
 
@@ -484,7 +459,6 @@ export class ProofTree {
         node.dischargedAssumption = { formula: negGoal };
         
         this.selectedNode = premise;
-        this.autoApplyAxiomsFromSelection();
         return { success: true };
     }
 }

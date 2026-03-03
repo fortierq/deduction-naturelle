@@ -6,7 +6,6 @@ export type RuleType = '\\to_i' | '\\to_e' | '\\wedge_i' | '\\wedge_e' | '\\vee_
 
 export interface Exercise {
     id: number;
-    title: string;
     goal: string;
     hypotheses: string[];
     difficulty: 'easy' | 'medium' | 'hard';
@@ -21,7 +20,6 @@ export interface ParsedExercise extends Exercise {
 export const exercises: Exercise[] = [
     {
         id: 1,
-        title: "Identity",
         goal: "A -> A",
         hypotheses: [],
         difficulty: "easy",
@@ -29,7 +27,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 2,
-        title: "Modus Ponens",
         goal: "B",
         hypotheses: ["A -> B", "A"],
         difficulty: "easy",
@@ -37,7 +34,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 3,
-        title: "Conjunction Elimination",
         goal: "A",
         hypotheses: ["A & B"],
         difficulty: "easy",
@@ -45,7 +41,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 4,
-        title: "Conjunction Introduction",
         goal: "A & B",
         hypotheses: ["A", "B"],
         difficulty: "easy",
@@ -53,7 +48,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 5,
-        title: "Disjunction Introduction",
         goal: "A | B",
         hypotheses: ["A"],
         difficulty: "easy",
@@ -61,7 +55,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 6,
-        title: "Hypothetical Syllogism",
         goal: "(A -> B) -> (B -> C) -> (A -> C)",
         hypotheses: [],
         difficulty: "medium",
@@ -69,7 +62,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 7,
-        title: "Conjunction Commutativity",
         goal: "(A & B) -> (B & A)",
         hypotheses: [],
         difficulty: "medium",
@@ -77,15 +69,13 @@ export const exercises: Exercise[] = [
     },
     {
         id: 8,
-        title: "Disjunction from Implication",
-        goal: "A | B",
+        goal: "A & B",
         hypotheses: ["A -> B", "A"],
         difficulty: "medium",
-        rules: ['\\to_e', '\\vee_i']
+        rules: ['\\to_e', '\\wedge_i']
     },
     {
         id: 9,
-        title: "Currying",
         goal: "(A & B -> C) -> (A -> B -> C)",
         hypotheses: [],
         difficulty: "medium",
@@ -93,7 +83,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 10,
-        title: "Uncurrying",
         goal: "(A -> B -> C) -> (A & B -> C)",
         hypotheses: [],
         difficulty: "medium",
@@ -101,7 +90,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 11,
-        title: "Disjunction Commutativity",
         goal: "(A | B) -> (B | A)",
         hypotheses: [],
         difficulty: "medium",
@@ -109,7 +97,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 12,
-        title: "Distribution (∧ over ∨)",
         goal: "(A & (B | C)) -> ((A & B) | (A & C))",
         hypotheses: [],
         difficulty: "medium",
@@ -117,7 +104,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 13,
-        title: "Contraposition (one direction)",
         goal: "(A -> B) -> (¬B -> ¬A)",
         hypotheses: [],
         difficulty: "medium",
@@ -125,7 +111,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 14,
-        title: "Double Negation Introduction",
         goal: "A -> ¬¬A",
         hypotheses: [],
         difficulty: "medium",
@@ -133,7 +118,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 15,
-        title: "Modus Tollens",
         goal: "¬A",
         hypotheses: ["A -> B", "¬B"],
         difficulty: "medium",
@@ -141,7 +125,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 16,
-        title: "Double Negation Elimination",
         goal: "¬¬A -> A",
         hypotheses: [],
         difficulty: "hard",
@@ -149,7 +132,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 17,
-        title: "Excluded Middle",
         goal: "A | ¬A",
         hypotheses: [],
         difficulty: "hard",
@@ -157,7 +139,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 18,
-        title: "Peirce's Law",
         goal: "((A -> B) -> A) -> A",
         hypotheses: [],
         difficulty: "hard",
@@ -165,7 +146,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 19,
-        title: "De Morgan (¬(A ∧ B) → ¬A ∨ ¬B)",
         goal: "¬(A & B) -> (¬A | ¬B)",
         hypotheses: [],
         difficulty: "hard",
@@ -173,7 +153,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 20,
-        title: "De Morgan (¬(A ∨ B) → ¬A ∧ ¬B)",
         goal: "¬(A | B) -> (¬A & ¬B)",
         hypotheses: [],
         difficulty: "hard",
@@ -181,7 +160,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 21,
-        title: "Constructive Dilemma",
         goal: "(A -> B) -> (C -> D) -> (A | C) -> (B | D)",
         hypotheses: [],
         difficulty: "hard",
@@ -189,7 +167,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 22,
-        title: "Explosion (Ex Falso)",
         goal: "(A & ¬A) -> B",
         hypotheses: [],
         difficulty: "medium",
@@ -197,7 +174,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 23,
-        title: "Negation of Implication",
         goal: "¬(A -> B) -> A",
         hypotheses: [],
         difficulty: "hard",
@@ -205,7 +181,6 @@ export const exercises: Exercise[] = [
     },
     {
         id: 24,
-        title: "Complex Derivation",
         goal: "((A -> B) & (B -> C) & A) -> C",
         hypotheses: [],
         difficulty: "medium",

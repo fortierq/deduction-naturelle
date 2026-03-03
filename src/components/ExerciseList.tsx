@@ -51,14 +51,46 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise, onClick }) => {
   );
 };
 
+const SyntaxHelpBadge: React.FC<{ text: string }> = ({ text }) => {
+  const { language } = useLanguage();
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const timeoutId = window.setTimeout(() => {
+      setIsOpen(false);
+    }, 5000);
+    return () => window.clearTimeout(timeoutId);
+  }, [isOpen]);
+
+  return (
+    <div className="relative inline-flex shrink-0 items-center">
+      <button
+        type="button"
+        className="modal-btn-cancel"
+        aria-label={text}
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        {language === 'fr' ? 'Aide' : 'Help'}
+      </button>
+      {isOpen && (
+        <div className="absolute left-full top-1/2 z-50 ml-2 w-56 -translate-y-1/2 rounded-lg border-2 border-slate-200 bg-white p-2 text-xs text-slate-700 shadow-lg dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
+          {text}
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface FilterDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenCustomSequent: () => void;
   onShuffleExercises: () => void;
-  selectedDifficulties: Set<string>;
+  selectedDifficulties: Set<DifficultyFilter>;
   selectedOperators: Set<OperatorFilter>;
-  onDifficultyToggle: (diff: string) => void;
+  onDifficultyToggle: (diff: DifficultyFilter) => void;
   onOperatorToggle: (operator: OperatorFilter) => void;
   onClearFilters: () => void;
   exerciseCount: number;
@@ -68,9 +100,10 @@ interface FilterDrawerProps {
 }
 
 type OperatorFilter = '→' | '∧' | '∨' | '¬' | '⊥' | 'raa';
+type DifficultyFilter = Exercise['difficulty'];
 
 const operatorOptions: OperatorFilter[] = ['→', '∧', '∨', '¬', '⊥', 'raa'];
-const difficultyOptions = ['easy', 'medium', 'hard'];
+const difficultyOptions: DifficultyFilter[] = ['easy', 'medium', 'hard'];
 
 const mapRuleToOperator = (rule: RuleType): OperatorFilter => {
   if (rule.startsWith('\\to')) return '→';
@@ -99,7 +132,7 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
   const { t } = useLanguage();
   const [isDrawerResizing, setIsDrawerResizing] = useState(false);
   const mobileDrawerWidth = `min(${drawerWidth}px, calc(100vw - 1rem))`;
-  const difficultyLabels: Record<string, string> = {
+  const difficultyLabels: Record<DifficultyFilter, string> = {
     easy: t.easy,
     medium: t.medium,
     hard: t.hard
@@ -272,7 +305,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
   onDrawerOpenChange
 }) => {
   const { t } = useLanguage();
-  const [selectedDifficulties, setSelectedDifficulties] = useState<Set<string>>(new Set(difficultyOptions));
+  const [selectedDifficulties, setSelectedDifficulties] = useState<Set<DifficultyFilter>>(new Set(difficultyOptions));
   const [selectedOperators, setSelectedOperators] = useState<Set<OperatorFilter>>(new Set(operatorOptions));
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [customGoal, setCustomGoal] = useState('');
@@ -299,7 +332,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
 
   const displayedExercises = shuffledExercises ?? filteredExercises;
 
-  const handleDifficultyToggle = (diff: string) => {
+  const handleDifficultyToggle = (diff: DifficultyFilter) => {
     setSelectedDifficulties(prev => {
       const next = new Set(prev);
       if (next.has(diff)) {
@@ -361,26 +394,27 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
         onClose={() => setIsCustomModalOpen(false)}
         title={t.customSequentModalTitle}
       >
-        <label className="block text-slate-700 dark:text-slate-200 mb-2">{t.hypotheses}</label>
-        <input
-          type="text"
-          className="modal-input mb-4"
-          value={customHypotheses}
-          onChange={(e) => setCustomHypotheses(e.target.value)}
-          placeholder={t.customHypothesesPlaceholder}
-        />
-        <label className="block text-slate-700 dark:text-slate-200 mb-2">{t.goal}</label>
-        <input
-          type="text"
-          className="modal-input"
-          value={customGoal}
-          onChange={(e) => setCustomGoal(e.target.value)}
-          placeholder={t.customGoalPlaceholder}
-        />
-        <p className="text-sm text-slate-500 mt-2 dark:text-slate-400">
-          {t.customSequentSyntaxHelp}
-        </p>
+        <div className="mb-4 flex items-center gap-2">
+          <input
+            type="text"
+            className="modal-input"
+            value={customHypotheses}
+            onChange={(e) => setCustomHypotheses(e.target.value)}
+            placeholder={t.hypotheses}
+          />
+        </div>
+        <label className="block text-slate-700 dark:text-slate-200 mb-2"></label>
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            className="modal-input"
+            value={customGoal}
+            onChange={(e) => setCustomGoal(e.target.value)}
+            placeholder={t.goal}
+          />
+        </div>
         <div className="flex gap-3 justify-end mt-4">
+          <SyntaxHelpBadge text={t.customSequentSyntaxHelp} />
           <button className="modal-btn-cancel" onClick={() => setIsCustomModalOpen(false)}>{t.cancel}</button>
           <button
             className="modal-btn-confirm disabled:opacity-50 disabled:cursor-not-allowed"

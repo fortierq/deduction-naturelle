@@ -34,6 +34,38 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, titleAsLat
   );
 };
 
+const SyntaxHelpBadge: React.FC<{ text: string }> = ({ text }) => {
+  const { language } = useLanguage();
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const timeoutId = window.setTimeout(() => {
+      setIsOpen(false);
+    }, 5000);
+    return () => window.clearTimeout(timeoutId);
+  }, [isOpen]);
+
+  return (
+    <div className="relative inline-flex shrink-0 items-center">
+      <button
+        type="button"
+        className="modal-btn-cancel"
+        aria-label={text}
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        {language === 'fr' ? 'Aide' : 'Help'}
+      </button>
+      {isOpen && (
+        <div className="absolute left-full top-1/2 z-50 ml-2 w-56 -translate-y-1/2 rounded-lg border-2 border-slate-200 bg-white p-2 text-xs text-slate-700 shadow-lg dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
+          {text}
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface FormulaInputModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -70,6 +102,8 @@ export const FormulaInputModal: React.FC<FormulaInputModalProps> = ({
   const usesVariableInputs = resolvedVariableNames.length > 0;
 
   useEffect(() => {
+    let timeoutId: number | null = null;
+
     if (isOpen) {
       setValue('');
       if (usesVariableInputs) {
@@ -78,11 +112,17 @@ export const FormulaInputModal: React.FC<FormulaInputModalProps> = ({
           nextValues[variableName] = '';
         });
         setVariableValues(nextValues);
-        setTimeout(() => firstVariableInputRef.current?.focus(), 100);
+        timeoutId = window.setTimeout(() => firstVariableInputRef.current?.focus(), 100);
       } else {
-        setTimeout(() => inputRef.current?.focus(), 100);
+        timeoutId = window.setTimeout(() => inputRef.current?.focus(), 100);
       }
     }
+
+    return () => {
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
+    };
   }, [isOpen, usesVariableInputs, resolvedVariableNames]);
 
   const handleSubmit = () => {
@@ -144,39 +184,44 @@ export const FormulaInputModal: React.FC<FormulaInputModalProps> = ({
           {resolvedVariableNames.map((variableName, index) => (
             <div key={variableName}>
               <label className="block text-sm text-slate-700 dark:text-slate-300 mb-1">{variableName}</label>
-              <input
-                ref={index === 0 ? firstVariableInputRef : undefined}
-                type="text"
-                className="modal-input"
-                placeholder={variableName}
-                value={variableValues[variableName] ?? ''}
-                onChange={(e) => {
-                  const nextValue = e.target.value;
-                  setVariableValues(prev => ({
-                    ...prev,
-                    [variableName]: nextValue
-                  }));
-                }}
-                onKeyDown={handleKeyDown}
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  ref={index === 0 ? firstVariableInputRef : undefined}
+                  type="text"
+                  className="modal-input"
+                  placeholder={variableName}
+                  value={variableValues[variableName] ?? ''}
+                  onChange={(e) => {
+                    const nextValue = e.target.value;
+                    setVariableValues(prev => ({
+                      ...prev,
+                      [variableName]: nextValue
+                    }));
+                  }}
+                  onKeyDown={handleKeyDown}
+                />
+              </div>
             </div>
           ))}
         </div>
       ) : (
-        <input
-          ref={inputRef}
-          type="text"
-          className="modal-input"
-          placeholder={placeholder}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-        />
+        <div className="flex items-center gap-2">
+          <input
+            ref={inputRef}
+            type="text"
+            className="modal-input"
+            placeholder={placeholder}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+        </div>
       )}
       <p className="text-sm text-slate-500 mt-2 dark:text-slate-400">
         {t.customSequentSyntaxHelp}
       </p>
       <div className="flex gap-3 justify-center mt-4">
+        <SyntaxHelpBadge text={t.customSequentSyntaxHelp} />
         <button className="modal-btn-cancel" onClick={onClose}>{t.cancel}</button>
         <button className="modal-btn-confirm" onClick={handleSubmit}>{t.confirm}</button>
       </div>
@@ -203,10 +248,10 @@ export const HypothesisSelectModal: React.FC<HypothesisSelectModalProps> = ({
   
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
-      <p className="text-slate-700 mb-3">Select a hypothesis:</p>
+      <p className="text-slate-700 mb-3">{t.hypotheses}:</p>
       {hypotheses.map((hyp, index) => (
         <button
-          key={index}
+          key={`${hyp.toDisplayString()}-${index}`}
           className="hypothesis-option"
           onClick={() => {
             onSelect(hyp);

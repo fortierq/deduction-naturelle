@@ -27,6 +27,38 @@ interface ModalConfig {
   action: ModalAction;
 }
 
+const SyntaxHelpBadge: React.FC<{ text: string }> = ({ text }) => {
+  const { language } = useLanguage();
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const timeoutId = window.setTimeout(() => {
+      setIsOpen(false);
+    }, 5000);
+    return () => window.clearTimeout(timeoutId);
+  }, [isOpen]);
+
+  return (
+    <div className="relative inline-flex shrink-0 items-center">
+      <button
+        type="button"
+        className="modal-btn-cancel"
+        aria-label={text}
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        {language === 'fr' ? 'Aide' : 'Help'}
+      </button>
+      {isOpen && (
+        <div className="absolute left-full top-1/2 z-50 ml-2 w-56 -translate-y-1/2 rounded-lg border-2 border-slate-200 bg-white p-2 text-xs text-slate-700 shadow-lg dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
+          {text}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const App: React.FC = () => {
   const { t } = useLanguage();
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -36,6 +68,7 @@ const App: React.FC = () => {
   const proofTreeRef = useRef<ProofTree | null>(null);
   const [, setVersion] = useState(0); // Used to trigger re-renders
   const [message, setMessage] = useState<Message | null>(null);
+  const messageTimeoutRef = useRef<number | null>(null);
   const [modalState, setModalState] = useState<ModalConfig | null>(null);
   const [panelModalValues, setPanelModalValues] = useState<Record<string, string>>({});
   const panelModalFirstInputRef = useRef<HTMLInputElement | null>(null);
@@ -75,10 +108,25 @@ const App: React.FC = () => {
   }, []);
 
   const showMessage = useCallback((text: string, type: MessageType) => {
+    if (messageTimeoutRef.current !== null) {
+      window.clearTimeout(messageTimeoutRef.current);
+      messageTimeoutRef.current = null;
+    }
     setMessage({ text, type });
     if (type !== 'success') {
-      setTimeout(() => setMessage(null), 5000);
+      messageTimeoutRef.current = window.setTimeout(() => {
+        setMessage(null);
+        messageTimeoutRef.current = null;
+      }, 5000);
     }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (messageTimeoutRef.current !== null) {
+        window.clearTimeout(messageTimeoutRef.current);
+      }
+    };
   }, []);
 
   const selectExercise = useCallback((exercise: Exercise) => {
@@ -91,6 +139,7 @@ const App: React.FC = () => {
     proofTreeRef.current = tree;
     setIsRulesDrawerOpen(!isSmallScreen);
     setIsFiltersDrawerOpen(false);
+    setModalState(null);
     setMessage(null);
   }, [proofMessages]);
 
@@ -99,7 +148,6 @@ const App: React.FC = () => {
       const isSmallScreen = window.matchMedia('(max-width: 767px)').matches;
       const customExercise: Exercise = {
         id: Date.now(),
-        title: t.customSequentTitle,
         goal,
         hypotheses,
         difficulty: 'medium',
@@ -119,6 +167,7 @@ const App: React.FC = () => {
       proofTreeRef.current = tree;
       setIsRulesDrawerOpen(!isSmallScreen);
       setIsFiltersDrawerOpen(false);
+      setModalState(null);
       setMessage(null);
     } catch (e) {
       showMessage(`${t.invalidFormula}: ${(e as Error).message}`, 'error');
@@ -130,6 +179,7 @@ const App: React.FC = () => {
       const tree = new ProofTree(parsedExercise.goalFormula, parsedExercise.hypothesesFormulas, proofMessages());
       setProofTree(tree);
       proofTreeRef.current = tree;
+      setModalState(null);
       setMessage(null);
     }
   }, [parsedExercise, proofMessages]);
@@ -140,6 +190,7 @@ const App: React.FC = () => {
     setProofTree(null);
     setIsRulesDrawerOpen(false);
     setIsFiltersDrawerOpen(window.matchMedia('(min-width: 768px)').matches);
+    setModalState(null);
     setMessage(null);
   }, []);
 
@@ -286,6 +337,8 @@ const App: React.FC = () => {
   }, [modalState, isRulesDrawerOpen]);
 
   const applyRule = useCallback((ruleName: string) => {
+    setModalState(null);
+
     if (!proofTree || !proofTree.selectedNode) {
       showMessage(t.noGoalSelected, 'error');
       return;
@@ -389,6 +442,7 @@ const App: React.FC = () => {
         return;
     }
 
+    setModalState(null);
     handleResult(result);
   }, [proofTree, showMessage, handleResult, t]);
 
@@ -621,38 +675,42 @@ const App: React.FC = () => {
                     <div className={`${modalState.variableNames.length === 2 ? 'grid grid-cols-2 gap-2' : 'flex justify-center'}`}>
                       {modalState.variableNames.map((variableName, index) => (
                         <div key={variableName}>
-                          <input
-                            ref={index === 0 ? panelModalFirstInputRef : undefined}
-                            type="text"
-                            className="modal-input text-center"
-                            style={{ height: '2.125rem' }}
-                            placeholder={variableName}
-                            aria-label={variableName}
-                            value={panelModalValues[variableName] ?? ''}
-                            onChange={(e) => {
-                              const nextValue = e.target.value;
-                              setPanelModalValues(prev => ({
-                                ...prev,
-                                [variableName]: nextValue
-                              }));
-                            }}
-                            onKeyDown={handlePanelRuleInputKeyDown}
-                          />
+                          <div className="flex items-center gap-2">
+                            <input
+                              ref={index === 0 ? panelModalFirstInputRef : undefined}
+                              type="text"
+                              className="modal-input text-center"
+                              style={{ height: '2.125rem' }}
+                              placeholder={variableName}
+                              aria-label={variableName}
+                              value={panelModalValues[variableName] ?? ''}
+                              onChange={(e) => {
+                                const nextValue = e.target.value;
+                                setPanelModalValues(prev => ({
+                                  ...prev,
+                                  [variableName]: nextValue
+                                }));
+                              }}
+                              onKeyDown={handlePanelRuleInputKeyDown}
+                            />
+                          </div>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="flex justify-center">
-                      <input
-                        ref={panelModalFirstInputRef}
-                        type="text"
-                        className="modal-input text-center max-w-md"
-                        style={{ height: '2.125rem' }}
-                        placeholder={modalState.placeholder}
-                        value={panelModalValues.formula ?? ''}
-                        onChange={(e) => setPanelModalValues({ formula: e.target.value })}
-                        onKeyDown={handlePanelRuleInputKeyDown}
-                      />
+                      <div className="flex w-full max-w-md items-center gap-2">
+                        <input
+                          ref={panelModalFirstInputRef}
+                          type="text"
+                          className="modal-input text-center max-w-md"
+                          style={{ height: '2.125rem' }}
+                          placeholder={modalState.placeholder}
+                          value={panelModalValues.formula ?? ''}
+                          onChange={(e) => setPanelModalValues({ formula: e.target.value })}
+                          onKeyDown={handlePanelRuleInputKeyDown}
+                        />
+                      </div>
                     </div>
                   )
                 )}
@@ -672,6 +730,7 @@ const App: React.FC = () => {
             {modalState && (
               <div className="mx-3 mb-2">
                 <div className="flex gap-2 justify-center mt-0.5">
+                  <SyntaxHelpBadge text={t.customSequentSyntaxHelp} />
                   <button className="modal-btn-cancel" onClick={() => setModalState(null)}>{t.cancel}</button>
                   <button className="modal-btn-confirm" onClick={submitPanelRuleInput}>{t.confirm}</button>
                 </div>
