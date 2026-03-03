@@ -51,7 +51,7 @@ const SyntaxHelpBadge: React.FC<{ text: string }> = ({ text }) => {
         {language === 'fr' ? 'Aide' : 'Help'}
       </button>
       {isOpen && (
-        <div className="absolute left-full top-1/2 z-50 ml-2 w-56 -translate-y-1/2 rounded-lg border-2 border-slate-200 bg-white p-2 text-xs text-slate-700 shadow-lg dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
+        <div className="absolute left-0 top-full z-50 mt-2 w-56 rounded-lg border-2 border-slate-200 bg-white p-2 text-xs text-slate-700 shadow-lg dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
           {text}
         </div>
       )}
