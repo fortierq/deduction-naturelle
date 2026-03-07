@@ -92,25 +92,32 @@ interface FilterDrawerProps {
   selectedOperators: Set<OperatorFilter>;
   onDifficultyToggle: (diff: DifficultyFilter) => void;
   onOperatorToggle: (operator: OperatorFilter) => void;
-  onClearFilters: () => void;
   exerciseCount: number;
   totalCount: number;
   drawerWidth: number;
   onDrawerWidthChange: (width: number) => void;
 }
 
-type OperatorFilter = '→' | '∧' | '∨' | '¬' | '⊥' | 'raa';
 type DifficultyFilter = Exercise['difficulty'];
 
-const operatorOptions: OperatorFilter[] = ['→', '∧', '∨', '¬', '⊥', 'raa'];
+const operatorOptions = ['impl', 'and', 'or', 'neg', 'absurd', 'raa'] as const;
+type OperatorFilter = typeof operatorOptions[number];
 const difficultyOptions: DifficultyFilter[] = ['easy', 'medium', 'hard'];
+const operatorLatexByFilter: Record<OperatorFilter, string> = {
+  impl: '\\to',
+  and: '\\wedge',
+  or: '\\vee',
+  neg: '\\neg',
+  absurd: '\\bot',
+  raa: '\\mathrm{raa}'
+};
 
 const mapRuleToOperator = (rule: RuleType): OperatorFilter => {
-  if (rule.startsWith('\\to')) return '→';
-  if (rule.startsWith('\\wedge')) return '∧';
-  if (rule.startsWith('\\vee')) return '∨';
-  if (rule.startsWith('\\neg')) return '¬';
-  if (rule === '\\bot_e') return '⊥';
+  if (rule.startsWith('\\to')) return 'impl';
+  if (rule.startsWith('\\wedge')) return 'and';
+  if (rule.startsWith('\\vee')) return 'or';
+  if (rule.startsWith('\\neg')) return 'neg';
+  if (rule === '\\bot_e') return 'absurd';
   return 'raa';
 };
 
@@ -123,7 +130,6 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
   selectedOperators,
   onDifficultyToggle,
   onOperatorToggle,
-  onClearFilters,
   exerciseCount,
   totalCount,
   drawerWidth,
@@ -137,8 +143,6 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
     medium: t.medium,
     hard: t.hard
   };
-
-  const activeFilterCount = selectedDifficulties.size + selectedOperators.size;
 
   useEffect(() => {
     if (!isDrawerResizing) return;
@@ -235,7 +239,7 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
                     <span className={`text-sm font-math group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors ${
                       selectedOperators.has(operator) ? 'text-slate-900 dark:text-slate-100 font-medium' : 'text-slate-900 dark:text-slate-100'
                     }`}>
-                      {operator}
+                      <Latex math={operatorLatexByFilter[operator]} />
                     </span>
                   </label>
                 ))}
@@ -254,16 +258,9 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
             <button
               onClick={onShuffleExercises}
               aria-label={t.randomExercise}
-              title={t.randomExercise}
               className="w-full px-4 py-2 bg-white dark:bg-slate-800 text-sm text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border-2 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500"
             >
               {t.randomExercise}
-            </button>
-            <button
-              onClick={onClearFilters}
-              className="w-full px-4 py-2 bg-white dark:bg-slate-800 text-sm text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border-2 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500"
-            >
-              {t.clearAllFilters} {activeFilterCount > 0 && `(${activeFilterCount})`}
             </button>
             <div className="text-center">
               <span className="text-sm text-slate-500 dark:text-slate-100">
@@ -436,7 +433,6 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
         selectedOperators={selectedOperators}
         onDifficultyToggle={handleDifficultyToggle}
         onOperatorToggle={handleOperatorToggle}
-        onClearFilters={handleClearFilters}
         exerciseCount={filteredExercises.length}
         totalCount={exercises.length}
         drawerWidth={drawerWidth}

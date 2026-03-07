@@ -104,35 +104,35 @@ export const exercises: Exercise[] = [
     },
     {
         id: 13,
-        goal: "(A -> B) -> (¬B -> ¬A)",
+        goal: "(A -> B) -> (!B -> !A)",
         hypotheses: [],
         difficulty: "medium",
         rules: ['\\to_i', '\\to_e', '\\neg_i', '\\neg_e']
     },
     {
         id: 14,
-        goal: "A -> ¬¬A",
+        goal: "A -> !!A",
         hypotheses: [],
         difficulty: "medium",
         rules: ['\\to_i', '\\neg_i', '\\neg_e']
     },
     {
         id: 15,
-        goal: "¬A",
-        hypotheses: ["A -> B", "¬B"],
+        goal: "!A",
+        hypotheses: ["A -> B", "!B"],
         difficulty: "medium",
         rules: ['\\to_e', '\\neg_i', '\\neg_e']
     },
     {
         id: 16,
-        goal: "¬¬A -> A",
+        goal: "!!A -> A",
         hypotheses: [],
         difficulty: "hard",
         rules: ['\\to_i', '\\neg_e', '\\mathrm{raa}']
     },
     {
         id: 17,
-        goal: "A | ¬A",
+        goal: "A | !A",
         hypotheses: [],
         difficulty: "hard",
         rules: ['\\vee_i', '\\neg_i', '\\neg_e', '\\mathrm{raa}']
@@ -146,14 +146,14 @@ export const exercises: Exercise[] = [
     },
     {
         id: 19,
-        goal: "¬(A & B) -> (¬A | ¬B)",
+        goal: "!(A & B) -> (!A | !B)",
         hypotheses: [],
         difficulty: "hard",
         rules: ['\\to_i', '\\wedge_i', '\\vee_i', '\\neg_i', '\\neg_e', '\\mathrm{raa}']
     },
     {
         id: 20,
-        goal: "¬(A | B) -> (¬A & ¬B)",
+        goal: "!(A | B) -> (!A & !B)",
         hypotheses: [],
         difficulty: "hard",
         rules: ['\\to_i', '\\wedge_i', '\\vee_i', '\\neg_i', '\\neg_e']
@@ -167,14 +167,14 @@ export const exercises: Exercise[] = [
     },
     {
         id: 22,
-        goal: "(A & ¬A) -> B",
+        goal: "(A & !A) -> B",
         hypotheses: [],
         difficulty: "medium",
         rules: ['\\to_i', '\\wedge_e', '\\neg_e', '\\bot_e']
     },
     {
         id: 23,
-        goal: "¬(A -> B) -> A",
+        goal: "!(A -> B) -> A",
         hypotheses: [],
         difficulty: "hard",
         rules: ['\\to_i', '\\bot_e', '\\mathrm{raa}']

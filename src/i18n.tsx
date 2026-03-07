@@ -16,7 +16,6 @@ interface Translations {
   // Exercise list
   filters: string;
   difficulty: string;
-  clearAllFilters: string;
   showingExercises: (count: number, total: number) => string;
   noExercisesMatch: string;
   clearFilters: string;
@@ -43,21 +42,6 @@ interface Translations {
   introductionRules: string;
   eliminationRules: string;
   otherRules: string;
-  
-  // Rule names
-  implIntro: string;
-  implElim: string;
-  andIntro: string;
-  andElimLeft: string;
-  andElimRight: string;
-  orIntroLeft: string;
-  orIntroRight: string;
-  orElim: string;
-  negIntro: string;
-  negElim: string;
-  absurd: string;
-  raa: string;
-  axiom: string;
   
   // Messages
   noGoalSelected: string;
@@ -99,7 +83,6 @@ const translations: Record<Language, Translations> = {
     // Exercise list
     filters: 'Filtres',
     difficulty: 'Difficulté',
-    clearAllFilters: 'Effacer tous les filtres',
     showingExercises: (count, total) => `${count} / ${total} exercices`,
     noExercisesMatch: 'Aucun exercice ne correspond à vos filtres.',
     clearFilters: 'Effacer les filtres',
@@ -127,25 +110,10 @@ const translations: Record<Language, Translations> = {
     eliminationRules: 'Élimination',
     otherRules: 'Autres règles',
 
-    // Rule names
-    implIntro: '→ Introduction',
-    implElim: '→ Élimination',
-    andIntro: '∧ Introduction',
-    andElimLeft: '∧ Élimination Gauche',
-    andElimRight: '∧ Élimination Droite',
-    orIntroLeft: '∨ Introduction Gauche',
-    orIntroRight: '∨ Introduction Droite',
-    orElim: '∨ Élimination',
-    negIntro: '¬ Introduction',
-    negElim: '¬ Élimination',
-    absurd: 'Ex Falso',
-    raa: 'raa (Raisonnement par l\'absurde)',
-    axiom: 'Axiome',
-
     // Messages
     noGoalSelected: 'Aucun but sélectionné',
     noHypothesisMatches: (goal) => `Aucune hypothèse ne correspond au but : ${goal}`,
-    goalMustBeFalsum: 'Le but doit être ⊥ (faux) pour utiliser l\'élimination de la négation',
+    goalMustBeFalsum: 'Le but n\' est pas faux',
     unknownRule: 'Règle inconnue',
     undidLastAction: 'Dernière action annulée',
     nothingToUndo: 'Rien à annuler',
@@ -181,7 +149,6 @@ const translations: Record<Language, Translations> = {
     // Exercise list
     filters: 'Filters',
     difficulty: 'Difficulty',
-    clearAllFilters: 'Clear all filters',
     showingExercises: (count, total) => `${count} / ${total} exercises`,
     noExercisesMatch: 'No exercises match your filters.',
     clearFilters: 'Clear filters',
@@ -209,25 +176,10 @@ const translations: Record<Language, Translations> = {
     eliminationRules: 'Elimination',
     otherRules: 'Other Rules',
 
-    // Rule names
-    implIntro: '→ Introduction',
-    implElim: '→ Elimination',
-    andIntro: '∧ Introduction',
-    andElimLeft: '∧ Elimination Left',
-    andElimRight: '∧ Elimination Right',
-    orIntroLeft: '∨ Introduction Left',
-    orIntroRight: '∨ Introduction Right',
-    orElim: '∨ Elimination',
-    negIntro: '¬ Introduction',
-    negElim: '¬ Elimination',
-    absurd: 'Ex Falso',
-    raa: 'raa (Reductio ad Absurdum)',
-    axiom: 'Axiom',
-
     // Messages
     noGoalSelected: 'No goal selected',
     noHypothesisMatches: (goal) => `No hypothesis matches the goal: ${goal}`,
-    goalMustBeFalsum: 'Goal must be ⊥ (falsum) to use negation elimination',
+    goalMustBeFalsum: 'Goal is not false',
     unknownRule: 'Unknown rule',
     undidLastAction: 'Undid last action',
     nothingToUndo: 'Nothing to undo',
@@ -295,7 +247,6 @@ export const LanguageSelector: React.FC = () => {
     <div className="flex items-center">
       <button
         onClick={() => setLanguage(nextLanguage)}
-        title={language === 'fr' ? 'Français' : 'English'}
         aria-label={language === 'fr' ? 'Français' : 'English'}
         className="w-11 h-11 p-0 rounded-xl border-2 bg-white/15 text-white border-white/30 hover:bg-white/25 hover:border-white/40 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700 dark:hover:bg-slate-700 dark:hover:text-slate-100 dark:hover:border-slate-600 transition-colors flex items-center justify-center"
       >

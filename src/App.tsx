@@ -506,7 +506,6 @@ const App: React.FC = () => {
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={backToExercises}
-              title={t.home}
               aria-label={t.home}
               className={`${isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-100 border-slate-700' : 'bg-white/15 hover:bg-white/25 text-white border-white/30'} inline-flex items-center justify-center w-11 h-11 rounded-xl border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent`}
             >
@@ -518,7 +517,6 @@ const App: React.FC = () => {
               href="https://github.com/fortierq/deduction-naturelle"
               target="_blank"
               rel="noopener noreferrer"
-              title={t.github}
               aria-label={t.github}
               className={`${isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-100 border-slate-700' : 'bg-white/15 hover:bg-white/25 text-white border-white/30'} inline-flex items-center justify-center w-11 h-11 rounded-xl border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent`}
             >
@@ -528,7 +526,6 @@ const App: React.FC = () => {
             </a>
             <button
               onClick={toggleDarkMode}
-              title={isDarkMode ? t.lightMode : t.darkMode}
               aria-label={isDarkMode ? t.lightMode : t.darkMode}
               className={`${isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-slate-100 border-slate-600' : 'bg-white/15 hover:bg-white/25 text-white border-white/30'} inline-flex items-center justify-center w-11 h-11 rounded-xl border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent`}
             >
@@ -642,7 +639,6 @@ const App: React.FC = () => {
       {!isLeftPanelOpen && (
         <button
           onClick={toggleLeftPanel}
-          title={currentExercise ? t.inferenceRules : t.filters}
           aria-label={currentExercise ? t.inferenceRules : t.filters}
           className="fixed z-50 top-20 left-0 h-10 w-7 rounded-r-xl border-2 border-l-0 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:text-blue-700 hover:bg-blue-50 dark:hover:text-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center"
         >
@@ -719,7 +715,6 @@ const App: React.FC = () => {
                 onClick={() => setIsRulesDrawerOpen(false)}
                 className="justify-self-end p-2 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                 aria-label={t.cancel}
-                title={t.cancel}
               >
                 <svg className="w-5 h-5 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

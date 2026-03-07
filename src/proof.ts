@@ -88,7 +88,7 @@ type ProofMessages = Record<ProofMessageKey, string>;
 
 const defaultProofMessages: ProofMessages = {
     noGoalSelected: 'No goal selected',
-    goalMustBeFalsum: 'Goal must be ⊥ (falsum)',
+    goalMustBeFalsum: 'Goal must be \\bot (falsum)',
     proofHypothesisNotInContext: 'Hypothesis not available in current context',
     proofHypothesisGoalMismatch: 'Hypothesis does not match the goal',
     proofGoalNotImplication: 'Goal is not an implication',

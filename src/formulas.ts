@@ -65,15 +65,15 @@ export class Formula {
             case 'var':
                 return this.name;
             case 'and':
-                return `(${this.left.toString()} ∧ ${this.right.toString()})`;
+                return `(${this.left.toString()} & ${this.right.toString()})`;
             case 'or':
-                return `(${this.left.toString()} ∨ ${this.right.toString()})`;
+                return `(${this.left.toString()} | ${this.right.toString()})`;
             case 'impl':
-                return `(${this.left.toString()} → ${this.right.toString()})`;
+                return `(${this.left.toString()} -> ${this.right.toString()})`;
             case 'neg':
-                return `¬${this.inner.toString()}`;
+                return `!${this.inner.toString()}`;
             case 'bottom':
-                return '⊥';
+                return '0';
             default:
                 return '?';
         }
@@ -147,19 +147,19 @@ export class Formula {
                 result = this.name;
                 break;
             case 'bottom':
-                result = '⊥';
+                result = '0';
                 break;
             case 'neg':
-                result = `¬${this.inner.toStringWithPrecedence(currentPrecedence)}`;
+                result = `!${this.inner.toStringWithPrecedence(currentPrecedence)}`;
                 break;
             case 'and':
-                result = `${this.left.toStringWithPrecedence(currentPrecedence)} ∧ ${this.right.toStringWithPrecedence(currentPrecedence + 1)}`;
+                result = `${this.left.toStringWithPrecedence(currentPrecedence)} & ${this.right.toStringWithPrecedence(currentPrecedence + 1)}`;
                 break;
             case 'or':
-                result = `${this.left.toStringWithPrecedence(currentPrecedence)} ∨ ${this.right.toStringWithPrecedence(currentPrecedence + 1)}`;
+                result = `${this.left.toStringWithPrecedence(currentPrecedence)} | ${this.right.toStringWithPrecedence(currentPrecedence + 1)}`;
                 break;
             case 'impl':
-                result = `${this.left.toStringWithPrecedence(currentPrecedence + 1)} → ${this.right.toStringWithPrecedence(currentPrecedence)}`;
+                result = `${this.left.toStringWithPrecedence(currentPrecedence + 1)} -> ${this.right.toStringWithPrecedence(currentPrecedence)}`;
                 break;
             default:
                 result = '?';
@@ -223,7 +223,7 @@ export class FormulaParser {
 
     private parseImplication(): Formula {
         let left = this.parseOr();
-        while (this.match('->') || this.match('→') || this.match('=>')) {
+        while (this.match('->') || this.match('=>')) {
             const right = this.parseImplication();
             left = Formula.impl(left, right);
         }
@@ -232,7 +232,7 @@ export class FormulaParser {
 
     private parseOr(): Formula {
         let left = this.parseAnd();
-        while (this.match('|') || this.match('∨') || this.match('\\/')) {
+        while (this.match('|') || this.match('\\/')) {
             const right = this.parseAnd();
             left = Formula.or(left, right);
         }
@@ -241,7 +241,7 @@ export class FormulaParser {
 
     private parseAnd(): Formula {
         let left = this.parseNegation();
-        while (this.match('&') || this.match('∧') || this.match('/\\')) {
+        while (this.match('&') || this.match('/\\')) {
             const right = this.parseNegation();
             left = Formula.and(left, right);
         }
@@ -249,7 +249,7 @@ export class FormulaParser {
     }
 
     private parseNegation(): Formula {
-        if (this.match('!') || this.match('¬') || this.match('~') || this.match('-')) {
+        if (this.match('!') || this.match('~') || this.match('-')) {
             const inner = this.parseNegation();
             return Formula.neg(inner);
         }
@@ -265,7 +265,7 @@ export class FormulaParser {
             return formula;
         }
 
-        if (this.match('⊥') || this.match('0') || this.matchWord('false')) {
+        if (this.match('0') || this.matchWord('false')) {
             return Formula.bottom();
         }
 
