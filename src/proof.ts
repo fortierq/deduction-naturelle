@@ -5,11 +5,11 @@ import { Sequent } from './sequent';
 
 export type RuleName = 
     | 'axiom' 
-    | '→I' | '→E' 
-    | '∧I' | '∧E₁' | '∧E₂'
-    | '∨I₁' | '∨I₂' | '∨E'
-    | '¬I' | '¬E'
-    | '⊥E' | 'raa';
+    | 'impl-intro' | 'impl-elim' 
+    | 'and-intro' | 'and-elim-left' | 'and-elim-right'
+    | 'or-intro-left' | 'or-intro-right' | 'or-elim'
+    | 'neg-intro' | 'neg-elim'
+    | 'absurd' | 'raa';
 
 export interface DischargedAssumption {
     formula: Formula;
@@ -220,7 +220,7 @@ export class ProofTree {
         const newSequent = node.sequent.addToContext(antecedent).withGoal(consequent);
         
         const premise = new ProofNode(newSequent);
-        node.rule = '→I';
+        node.rule = 'impl-intro';
         node.premises = [premise];
         node.dischargedAssumption = { formula: antecedent };
         
@@ -245,7 +245,7 @@ export class ProofTree {
         const premise1 = new ProofNode(node.sequent.withGoal(implFormula));
         const premise2 = new ProofNode(node.sequent.withGoal(implFormula.left));
         
-        node.rule = '→E';
+        node.rule = 'impl-elim';
         node.premises = [premise1, premise2];
         
         this.selectedNode = premise1;
@@ -266,7 +266,7 @@ export class ProofTree {
         const premise1 = new ProofNode(node.sequent.withGoal(goal.left));
         const premise2 = new ProofNode(node.sequent.withGoal(goal.right));
         
-        node.rule = '∧I';
+        node.rule = 'and-intro';
         node.premises = [premise1, premise2];
         
         this.selectedNode = premise1;
@@ -289,7 +289,7 @@ export class ProofTree {
         this.saveState();
         const premise = new ProofNode(node.sequent.withGoal(conjFormula));
         
-        node.rule = '∧E₁';
+        node.rule = 'and-elim-left';
         node.premises = [premise];
         
         this.selectedNode = premise;
@@ -312,7 +312,7 @@ export class ProofTree {
         this.saveState();
         const premise = new ProofNode(node.sequent.withGoal(conjFormula));
         
-        node.rule = '∧E₂';
+        node.rule = 'and-elim-right';
         node.premises = [premise];
         
         this.selectedNode = premise;
@@ -332,7 +332,7 @@ export class ProofTree {
         this.saveState();
         const premise = new ProofNode(node.sequent.withGoal(goal.left));
         
-        node.rule = '∨I₁';
+        node.rule = 'or-intro-left';
         node.premises = [premise];
         
         this.selectedNode = premise;
@@ -352,7 +352,7 @@ export class ProofTree {
         this.saveState();
         const premise = new ProofNode(node.sequent.withGoal(goal.right));
         
-        node.rule = '∨I₂';
+        node.rule = 'or-intro-right';
         node.premises = [premise];
         
         this.selectedNode = premise;
@@ -376,7 +376,7 @@ export class ProofTree {
         const premise2 = new ProofNode(node.sequent.addToContext(left));
         const premise3 = new ProofNode(node.sequent.addToContext(right));
         
-        node.rule = '∨E';
+        node.rule = 'or-elim';
         node.premises = [premise1, premise2, premise3];
         node.dischargedAssumption = { left, right };
         
@@ -399,7 +399,7 @@ export class ProofTree {
         const newSequent = node.sequent.addToContext(inner).withGoal(Formula.bottom());
         
         const premise = new ProofNode(newSequent);
-        node.rule = '¬I';
+        node.rule = 'neg-intro';
         node.premises = [premise];
         node.dischargedAssumption = { formula: inner };
         
@@ -422,7 +422,7 @@ export class ProofTree {
         const premise1 = new ProofNode(node.sequent.withGoal(formula));
         const premise2 = new ProofNode(node.sequent.withGoal(negFormula));
         
-        node.rule = '¬E';
+        node.rule = 'neg-elim';
         node.premises = [premise1, premise2];
         
         this.selectedNode = premise1;
@@ -437,7 +437,7 @@ export class ProofTree {
         this.saveState();
         const premise = new ProofNode(node.sequent.withGoal(Formula.bottom()));
         
-        node.rule = '⊥E';
+        node.rule = 'absurd';
         node.premises = [premise];
         
         this.selectedNode = premise;

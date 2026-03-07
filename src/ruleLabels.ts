@@ -21,22 +21,7 @@ export interface PanelRuleUi {
   latexLabel: string;
 }
 
-type CanonicalRuleName =
-  | 'axiom'
-  | 'impl-intro'
-  | 'impl-elim'
-  | 'and-intro'
-  | 'and-elim-left'
-  | 'and-elim-right'
-  | 'or-intro-left'
-  | 'or-intro-right'
-  | 'or-elim'
-  | 'neg-intro'
-  | 'neg-elim'
-  | 'absurd'
-  | 'raa';
-
-const ruleLabelLatexByCanonicalRule: Record<CanonicalRuleName, string> = {
+export const ruleLabelLatexByPanelRule: Record<PanelRuleName, string> = {
   'axiom': '\\mathrm{ax}',
   'impl-intro': '\\to_{i}',
   'impl-elim': '\\to_{e}',
@@ -52,51 +37,7 @@ const ruleLabelLatexByCanonicalRule: Record<CanonicalRuleName, string> = {
   'raa': '\\mathrm{raa}'
 };
 
-const canonicalRuleByPanelRule: Record<PanelRuleName, CanonicalRuleName> = {
-  'impl-intro': 'impl-intro',
-  'impl-elim': 'impl-elim',
-  'and-intro': 'and-intro',
-  'and-elim-left': 'and-elim-left',
-  'and-elim-right': 'and-elim-right',
-  'or-intro-left': 'or-intro-left',
-  'or-intro-right': 'or-intro-right',
-  'or-elim': 'or-elim',
-  'neg-intro': 'neg-intro',
-  'neg-elim': 'neg-elim',
-  'absurd': 'absurd',
-  'raa': 'raa',
-  'axiom': 'axiom'
-};
-
-const canonicalRuleByProofRule: Record<RuleName, CanonicalRuleName> = {
-  'axiom': 'axiom',
-  '→I': 'impl-intro',
-  '→E': 'impl-elim',
-  '∧I': 'and-intro',
-  '∧E₁': 'and-elim-left',
-  '∧E₂': 'and-elim-right',
-  '∨I₁': 'or-intro-left',
-  '∨I₂': 'or-intro-right',
-  '∨E': 'or-elim',
-  '¬I': 'neg-intro',
-  '¬E': 'neg-elim',
-  '⊥E': 'absurd',
-  'raa': 'raa'
-};
-
-export const ruleLabelLatexByPanelRule: Record<PanelRuleName, string> = Object.fromEntries(
-  Object.entries(canonicalRuleByPanelRule).map(([rule, canonicalRule]) => [
-    rule,
-    ruleLabelLatexByCanonicalRule[canonicalRule]
-  ])
-) as Record<PanelRuleName, string>;
-
-export const ruleLabelLatexByProofRule: Record<RuleName, string> = Object.fromEntries(
-  Object.entries(canonicalRuleByProofRule).map(([rule, canonicalRule]) => [
-    rule,
-    ruleLabelLatexByCanonicalRule[canonicalRule]
-  ])
-) as Record<RuleName, string>;
+export const ruleLabelLatexByProofRule: Record<RuleName, string> = ruleLabelLatexByPanelRule;
 
 const panelRuleVisualByRule: Record<PanelRuleName, Pick<PanelRuleUi, 'imageSrc' | 'widthPct'>> = {
   'impl-intro': { imageSrc: 'assets/rules/imp_intro.png', widthPct: 58 },
