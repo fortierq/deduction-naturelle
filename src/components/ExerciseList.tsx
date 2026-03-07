@@ -1,7 +1,7 @@
 // Exercise list and card components
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Exercise } from '../exercises';
+import { Exercise, getExerciseKey } from '../exercises';
 import { FormulaParser } from '../formulas';
 import { useLanguage } from '../i18n';
 import { RULE_OPERATORS, RuleOperator } from '../rules';
@@ -405,7 +405,7 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4">
           {displayedExercises.map(exercise => (
             <ExerciseCard 
-              key={exercise.id} 
+              key={getExerciseKey(exercise)} 
               exercise={exercise} 
               onClick={() => onSelect(exercise)}
             />

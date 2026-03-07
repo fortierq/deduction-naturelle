@@ -7,9 +7,12 @@ import { Exercise, ParsedExercise, exercises, parseExercise } from './exercises'
 import { ModalRuleName, isModalRuleName, RuleName } from './rules';
 import { ExerciseList } from './components/ExerciseList';
 import { ProofNodeDisplay } from './components/ProofTree';
+import { Latex } from './components/Latex';
 import { RulePanel } from './components/RulePanel';
 import { SyntaxHelpBadge } from './components/SyntaxHelpBadge';
+import { Modal } from './components/Modal';
 import { useLanguage, LanguageSelector } from './i18n';
+import { NotationRule } from './notation';
 
 type MessageType = 'success' | 'error' | 'info';
 
@@ -25,6 +28,9 @@ interface ModalConfig {
   action: ModalRuleName;
 }
 
+const VARPHI_LATEX = String.raw`\varphi`;
+const GAMMA_LATEX = String.raw`\Gamma`;
+
 const App: React.FC = () => {
   const { t } = useLanguage();
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -39,6 +45,9 @@ const App: React.FC = () => {
   const [panelModalValues, setPanelModalValues] = useState<Record<string, string>>({});
   const panelModalFirstInputRef = useRef<HTMLInputElement | null>(null);
   const [isRulesDrawerOpen, setIsRulesDrawerOpen] = useState(false);
+  const [notationRule, setNotationRule] = useState<NotationRule | null>(null);
+  const [isNotationModalOpen, setIsNotationModalOpen] = useState(false);
+  const [notationInput, setNotationInput] = useState('');
   const [isFiltersDrawerOpen, setIsFiltersDrawerOpen] = useState(
     () => window.matchMedia('(min-width: 768px)').matches
   );
@@ -104,6 +113,9 @@ const App: React.FC = () => {
     proofTreeRef.current = tree;
     setIsRulesDrawerOpen(!isSmallScreen);
     setIsFiltersDrawerOpen(false);
+    setNotationRule(null);
+    setIsNotationModalOpen(false);
+    setNotationInput('');
     setModalState(null);
     setMessage(null);
   }, [proofMessages]);
@@ -116,7 +128,6 @@ const App: React.FC = () => {
   const createCustomSequent = useCallback((goal: string, hypotheses: string[]) => {
     try {
       const customExercise: Exercise = {
-        id: Date.now(),
         goal,
         hypotheses,
         difficulty: 'medium',
@@ -140,6 +151,9 @@ const App: React.FC = () => {
       const tree = new ProofTree(parsedExercise.goalFormula, parsedExercise.hypothesesFormulas, proofMessages());
       setProofTree(tree);
       proofTreeRef.current = tree;
+      setNotationRule(null);
+      setIsNotationModalOpen(false);
+      setNotationInput('');
       setModalState(null);
       setMessage(null);
     }
@@ -151,9 +165,64 @@ const App: React.FC = () => {
     setProofTree(null);
     setIsRulesDrawerOpen(false);
     setIsFiltersDrawerOpen(window.matchMedia('(min-width: 768px)').matches);
+    setNotationRule(null);
+    setIsNotationModalOpen(false);
+    setNotationInput('');
     setModalState(null);
     setMessage(null);
   }, []);
+
+  const openNotationModal = useCallback(() => {
+    if (notationRule?.type === 'formula') {
+      setNotationInput(notationRule.formula.toDisplayString());
+    } else if (notationRule?.type === 'set') {
+      setNotationInput(notationRule.formulas.map((formula) => formula.toDisplayString()).join('\n'));
+    } else {
+      setNotationInput('');
+    }
+
+    setIsNotationModalOpen(true);
+  }, [notationRule]);
+
+  const closeNotationModal = useCallback(() => {
+    setIsNotationModalOpen(false);
+  }, []);
+
+  const applyNotation = useCallback(() => {
+    try {
+      const trimmedInput = notationInput.trim();
+
+      if (!trimmedInput) {
+        setNotationRule(null);
+        setNotationInput('');
+        setIsNotationModalOpen(false);
+        return;
+      }
+
+      const formulas = trimmedInput
+        .split(/[\n,]+/)
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .map((value) => FormulaParser.parse(value));
+
+      if (formulas.length === 1) {
+        setNotationRule({
+          type: 'formula',
+          formula: formulas[0]
+        });
+        setIsNotationModalOpen(false);
+        return;
+      }
+
+      setNotationRule({
+        type: 'set',
+        formulas
+      });
+      setIsNotationModalOpen(false);
+    } catch (e) {
+      showMessage(`${t.invalidFormula}: ${(e as Error).message}`, 'error');
+    }
+  }, [notationInput, showMessage, t]);
 
   const goToNextExercise = useCallback(() => {
     if (exercises.length === 0) return;
@@ -163,7 +232,7 @@ const App: React.FC = () => {
       return;
     }
 
-    const currentIndex = exercises.findIndex(ex => ex.id === currentExercise.id);
+    const currentIndex = exercises.indexOf(currentExercise);
     const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % exercises.length : 0;
     selectExercise(exercises[nextIndex]);
   }, [currentExercise, selectExercise]);
@@ -518,13 +587,14 @@ const App: React.FC = () => {
         ) : (
           <>
             {/* Proof Tree */}
-            <div className={`${isDarkMode ? 'bg-slate-800 border-2 border-slate-700' : 'bg-white border-2 border-slate-200'} rounded-xl p-3 sm:p-4 md:p-6 mb-6 shadow-lg min-h-[300px] md:min-h-[400px] overflow-x-auto`}>
+            <div className={`${isDarkMode ? 'bg-slate-800 border-2 border-slate-700' : 'bg-white border-2 border-slate-200'} rounded-xl p-3 sm:p-4 md:p-6 mb-6 min-h-[300px] md:min-h-[400px] overflow-x-auto`}>
               <div className="w-max min-w-full flex justify-center p-1 sm:p-2 md:p-4">
                 {proofTree && (
                   <ProofNodeDisplay
                     node={proofTree.root}
                     selectedNode={proofTree.selectedNode}
                     onNodeClick={handleNodeClick}
+                    notationRule={notationRule}
                   />
                 )}
               </div>
@@ -546,7 +616,13 @@ const App: React.FC = () => {
                   {t.undo}
                 </button>
                 <button
-                  className="px-4 py-2.5 text-sm sm:text-base bg-white dark:bg-slate-800 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border-2 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500 col-span-2"
+                  className={`${notationRule ? 'bg-blue-100 text-blue-800 border-blue-500 dark:bg-blue-900/30 dark:text-blue-100 dark:border-blue-500' : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-200 dark:border-slate-700'} px-4 py-2.5 text-sm sm:text-base hover:text-blue-700 hover:bg-blue-50 dark:hover:text-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border-2 dark:hover:border-slate-500 hover:border-blue-500`}
+                  onClick={openNotationModal}
+                >
+                  {t.notation}
+                </button>
+                <button
+                  className="px-4 py-2.5 text-sm sm:text-base bg-white dark:bg-slate-800 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border-2 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500"
                   onClick={goToNextExercise}
                 >
                   {t.nextExercise}
@@ -568,6 +644,12 @@ const App: React.FC = () => {
                     {t.undo}
                   </button>
                   <button
+                    className={`${notationRule ? 'bg-blue-100 text-blue-800 border-blue-500 dark:bg-blue-900/30 dark:text-blue-100 dark:border-blue-500' : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-200 dark:border-slate-700'} px-6 py-3 hover:text-blue-700 hover:bg-blue-50 dark:hover:text-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border-2 hover:border-blue-500 dark:hover:border-slate-500`}
+                    onClick={openNotationModal}
+                  >
+                    {t.notation}
+                  </button>
+                  <button
                     className="px-6 py-3 bg-white dark:bg-slate-800 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border-2 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500"
                     onClick={goToNextExercise}
                   >
@@ -576,6 +658,23 @@ const App: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {notationRule && (
+              <div className="mb-4 flex justify-center">
+                <div className="inline-flex items-center gap-2 rounded-full border-2 border-blue-300 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-900 shadow-sm dark:border-blue-500/60 dark:bg-blue-900/20 dark:text-blue-100">
+                  <span>{t.notationCurrent}:</span>
+                  <span className="inline-flex items-center gap-1 align-middle rounded-full bg-white/80 px-2 py-1 dark:bg-slate-900/50">
+                  <Latex math={notationRule.type === 'formula' ? VARPHI_LATEX : GAMMA_LATEX} />
+                  <span>=</span>
+                  <Latex
+                    math={notationRule.type === 'formula'
+                      ? notationRule.formula.toLatex()
+                      : notationRule.formulas.map((formula) => formula.toLatex()).join(', ')}
+                  />
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Message Area */}
             {message && (
@@ -615,7 +714,7 @@ const App: React.FC = () => {
           />
 
           <aside
-            className={`fixed top-0 left-0 h-full flex flex-col bg-white dark:bg-slate-800 dark:border-r dark:border-slate-700 z-40 transform transition-transform duration-300 ease-out ${
+            className={`fixed top-0 left-0 h-full flex flex-col bg-white dark:bg-slate-900 dark:border-r dark:border-slate-700 z-40 transform transition-transform duration-300 ease-out ${
               isRulesDrawerOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
             style={{ width: mobileDrawerWidth, maxWidth: `${drawerWidth}px` }}
@@ -706,6 +805,29 @@ const App: React.FC = () => {
           </aside>
         </>
       )}
+
+      <Modal isOpen={isNotationModalOpen} onClose={closeNotationModal} title={t.notation}>
+        <div className="space-y-4">
+          <textarea
+            className="modal-input w-full min-h-28 resize-y text-left"
+            placeholder={t.notationSetPlaceholder}
+            value={notationInput}
+            onChange={(e) => setNotationInput(e.target.value)}
+          />
+
+          <div className="flex flex-wrap gap-3 justify-center mt-4">
+            <SyntaxHelpBadge text={t.customSequentSyntaxHelp} tooltipPosition="top" />
+            <div className="flex flex-wrap justify-center gap-2">
+              <button type="button" className="modal-btn-cancel" onClick={closeNotationModal}>
+                {t.cancel}
+              </button>
+              <button type="button" className="modal-btn-confirm" onClick={applyNotation}>
+                {t.notationApply}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

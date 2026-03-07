@@ -1,6 +1,6 @@
 // Internationalization support
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, type FC, type ReactNode } from 'react';
 
 export type Language = 'fr' | 'en';
 
@@ -33,6 +33,10 @@ interface Translations {
   // Exercise view
   goal: string;
   hypotheses: string;
+  notation: string;
+  notationSetPlaceholder: string;
+  notationCurrent: string;
+  notationApply: string;
   resetProof: string;
   undo: string;
   nextExercise: string;
@@ -100,9 +104,13 @@ const translations: Record<Language, Translations> = {
     // Exercise view
     goal: 'But',
     hypotheses: 'Hypothèses',
+    notation: 'Notation',
+    notationSetPlaceholder: 'Une formule par ligne ou séparée par des virgules',
+    notationCurrent: 'Notation active ',
+    notationApply: 'Appliquer',
     resetProof: 'Réinitialiser',
     undo: 'Annuler',
-    nextExercise: 'Exercice suivant',
+    nextExercise: 'Suivant',
 
     // Rule panel
     inferenceRules: 'Règles d\'inférence',
@@ -166,9 +174,13 @@ const translations: Record<Language, Translations> = {
     // Exercise view
     goal: 'Goal',
     hypotheses: 'Hypotheses',
-    resetProof: 'Reset Proof',
+    notation: 'Notation',
+    notationSetPlaceholder: 'One formula per line or separated by commas',
+    notationCurrent: 'Current notation',
+    notationApply: 'Apply',
+    resetProof: 'Reset',
     undo: 'Undo',
-    nextExercise: 'Next Exercise',
+    nextExercise: 'Next',
 
     // Rule panel
     inferenceRules: 'Inference Rules',
@@ -214,7 +226,7 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const LanguageProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('fr');
   
   const value = {
@@ -239,7 +251,7 @@ export const useLanguage = (): LanguageContextType => {
 };
 
 // Language selector component
-export const LanguageSelector: React.FC = () => {
+export const LanguageSelector: FC = () => {
   const { language, setLanguage } = useLanguage();
   const nextLanguage: Language = language === 'fr' ? 'en' : 'fr';
   

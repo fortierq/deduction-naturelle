@@ -34,7 +34,7 @@ const RuleButton: React.FC<RuleButtonProps> = ({
   if (compact) {
     return (
       <button
-        className={`w-full p-0.5 border-2 rounded-lg transition-colors flex flex-col h-[7.5rem] ${isActive ? 'border-blue-500 text-blue-700 bg-blue-50 dark:border-slate-500 dark:text-slate-100 dark:bg-slate-700' : 'border-slate-300 dark:border-slate-700 hover:border-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:border-slate-500 dark:hover:text-slate-100 dark:hover:bg-slate-800'}`}
+        className={`w-full p-0.5 border-2 rounded-lg transition-colors flex flex-col h-[7.5rem] ${isActive ? 'border-blue-500 text-blue-700 bg-blue-50 dark:border-slate-500 dark:text-slate-100 dark:bg-slate-700' : 'border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-800 hover:border-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:border-slate-500 dark:hover:text-slate-100 dark:hover:bg-slate-700'}`}
         onClick={() => onClick(rule)}
       >
         <div className="font-semibold text-slate-900 dark:text-slate-100 mb-0 flex justify-center">
@@ -70,7 +70,7 @@ export const RulePanel: React.FC<RulePanelProps> = ({ onRuleClick, className = '
 
   if (compact) {
     return (
-      <div className={`bg-white dark:bg-slate-800 rounded-xl px-2 py-4 mb-4 ${className}`}>
+      <div className={`bg-white dark:bg-slate-900 rounded-xl px-2 py-4 mb-4 ${className}`}>
         <div className="grid grid-cols-2 gap-4 items-start">
           <div>
             <h4 className="font-semibold text-slate-700 dark:text-slate-200 mb-3 text-xs uppercase tracking-wide text-center">{t.introductionRules}</h4>
