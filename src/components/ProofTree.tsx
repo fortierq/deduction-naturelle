@@ -1,11 +1,11 @@
 // Proof tree display component with proper inference lines
 
-import React, { useRef, useEffect, useState } from 'react';
-import { ProofNode } from '../proof';
-import { Formula } from '../formulas';
-import { NotationRule } from '../notation';
-import { Latex } from './Latex';
-import { ruleLabelLatexByProofRule } from '../ruleLabels';
+import React, { useRef, useEffect, useState } from "react";
+import { ProofNode } from "../proof";
+import { Formula } from "../formulas";
+import { NotationRule } from "../notation";
+import { Latex } from "./Latex";
+import { ruleLabelLatexByProofRule } from "../ruleLabels";
 
 const FORMULA_PRECEDENCE = {
   var: 100,
@@ -13,7 +13,7 @@ const FORMULA_PRECEDENCE = {
   neg: 90,
   and: 70,
   or: 60,
-  imp: 50
+  imp: 50,
 } as const;
 
 interface ProofNodeDisplayProps {
@@ -23,36 +23,45 @@ interface ProofNodeDisplayProps {
   notationRule?: NotationRule | null;
 }
 
-const renderFormulaLatex = (formula: Formula, notationRule?: NotationRule | null): string => {
-  const renderWithPrecedence = (currentFormula: Formula, parentPrecedence: number): string => {
-    if (notationRule?.type === 'formula' && currentFormula.equals(notationRule.formula)) {
-      return '\\varphi';
+const renderFormulaLatex = (
+  formula: Formula,
+  notationRule?: NotationRule | null,
+): string => {
+  const renderWithPrecedence = (
+    currentFormula: Formula,
+    parentPrecedence: number,
+  ): string => {
+    if (
+      notationRule?.type === "formula" &&
+      currentFormula.equals(notationRule.formula)
+    ) {
+      return "\\varphi";
     }
 
     const currentPrecedence = FORMULA_PRECEDENCE[currentFormula.type];
     let result: string;
 
     switch (currentFormula.type) {
-      case 'var':
+      case "var":
         result = currentFormula.name;
         break;
-      case 'bot':
-        result = '\\bot';
+      case "bot":
+        result = "\\bot";
         break;
-      case 'neg':
+      case "neg":
         result = `\\neg ${renderWithPrecedence(currentFormula.inner, currentPrecedence)}`;
         break;
-      case 'and':
+      case "and":
         result = `${renderWithPrecedence(currentFormula.left, currentPrecedence)} \\land ${renderWithPrecedence(currentFormula.right, currentPrecedence + 1)}`;
         break;
-      case 'or':
+      case "or":
         result = `${renderWithPrecedence(currentFormula.left, currentPrecedence)} \\lor ${renderWithPrecedence(currentFormula.right, currentPrecedence + 1)}`;
         break;
-      case 'imp':
+      case "imp":
         result = `${renderWithPrecedence(currentFormula.left, currentPrecedence + 1)} \\to ${renderWithPrecedence(currentFormula.right, currentPrecedence)}`;
         break;
       default:
-        result = '?';
+        result = "?";
         break;
     }
 
@@ -66,9 +75,14 @@ const renderFormulaLatex = (formula: Formula, notationRule?: NotationRule | null
   return renderWithPrecedence(formula, 0);
 };
 
-const renderContextLatex = (context: Formula[], notationRule?: NotationRule | null): string => {
-  if (notationRule?.type !== 'set') {
-    return context.map((formula) => renderFormulaLatex(formula, notationRule)).join(', ');
+const renderContextLatex = (
+  context: Formula[],
+  notationRule?: NotationRule | null,
+): string => {
+  if (notationRule?.type !== "set") {
+    return context
+      .map((formula) => renderFormulaLatex(formula, notationRule))
+      .join(", ");
   }
 
   const matchedIndices: number[] = [];
@@ -76,7 +90,8 @@ const renderContextLatex = (context: Formula[], notationRule?: NotationRule | nu
 
   context.forEach((formula, index) => {
     const targetIndex = notationRule.formulas.findIndex(
-      (target, candidateIndex) => !usedTargets[candidateIndex] && formula.equals(target)
+      (target, candidateIndex) =>
+        !usedTargets[candidateIndex] && formula.equals(target),
     );
 
     if (targetIndex >= 0) {
@@ -86,7 +101,9 @@ const renderContextLatex = (context: Formula[], notationRule?: NotationRule | nu
   });
 
   if (usedTargets.some((used) => !used)) {
-    return context.map((formula) => renderFormulaLatex(formula, notationRule)).join(', ');
+    return context
+      .map((formula) => renderFormulaLatex(formula, notationRule))
+      .join(", ");
   }
 
   const matchedIndexSet = new Set(matchedIndices);
@@ -96,7 +113,7 @@ const renderContextLatex = (context: Formula[], notationRule?: NotationRule | nu
   context.forEach((formula, index) => {
     if (matchedIndexSet.has(index)) {
       if (!insertedGamma) {
-        renderedContext.push('\\Gamma');
+        renderedContext.push("\\Gamma");
         insertedGamma = true;
       }
       return;
@@ -105,7 +122,7 @@ const renderContextLatex = (context: Formula[], notationRule?: NotationRule | nu
     renderedContext.push(renderFormulaLatex(formula, notationRule));
   });
 
-  return renderedContext.join(', ');
+  return renderedContext.join(", ");
 };
 
 const SequentDisplay: React.FC<{
@@ -116,16 +133,23 @@ const SequentDisplay: React.FC<{
   isAxiom: boolean;
   onClick: () => void;
   notationRule?: NotationRule | null;
-}> = ({ context, goal, isSelected, isComplete, isAxiom, onClick, notationRule }) => {
-  let className = 'node-sequent';
-  if (isSelected) className += ' selected';
-  if (isAxiom) className += ' axiom';
-  else if (isComplete) className += ' completed';
-  else className += ' open-goal';
+}> = ({
+  context,
+  goal,
+  isSelected,
+  isComplete,
+  isAxiom,
+  onClick,
+  notationRule,
+}) => {
+  let className = "node-sequent";
+  if (isSelected) className += " selected";
+  if (isAxiom) className += " axiom";
+  else if (isComplete) className += " completed";
+  else className += " open-goal";
 
-  const contextLatex = context.length > 0
-    ? renderContextLatex(context, notationRule) + ' '
-    : '';
+  const contextLatex =
+    context.length > 0 ? renderContextLatex(context, notationRule) + " " : "";
   const sequentLatex = `${contextLatex}\\vdash ${renderFormulaLatex(goal, notationRule)}`;
 
   return (
@@ -142,7 +166,12 @@ const SequentDisplay: React.FC<{
   );
 };
 
-export const ProofNodeDisplay: React.FC<ProofNodeDisplayProps> = ({ node, selectedNode, onNodeClick, notationRule }) => {
+export const ProofNodeDisplay: React.FC<ProofNodeDisplayProps> = ({
+  node,
+  selectedNode,
+  onNodeClick,
+  notationRule,
+}) => {
   const premisesRef = useRef<HTMLDivElement>(null);
   const conclusionRef = useRef<HTMLDivElement>(null);
   const [lineWidth, setLineWidth] = useState<number>(0);
@@ -166,8 +195,9 @@ export const ProofNodeDisplay: React.FC<ProofNodeDisplayProps> = ({ node, select
   }, [node.premises, node.sequent]);
 
   const getRuleLabel = () => {
-    if (!node.rule) return { ruleLatex: '' };
-    const ruleLatex = ruleLabelLatexByProofRule[node.rule] ?? `\\mathrm{${node.rule}}`;
+    if (!node.rule) return { ruleLatex: "" };
+    const ruleLatex =
+      ruleLabelLatexByProofRule[node.rule] ?? `\\mathrm{${node.rule}}`;
     return { ruleLatex };
   };
 
@@ -197,7 +227,7 @@ export const ProofNodeDisplay: React.FC<ProofNodeDisplayProps> = ({ node, select
             <div className="relative inline-flex items-center">
               <div
                 className="h-px bg-slate-700 dark:bg-slate-300"
-                style={{ width: `${lineWidth}px`, minWidth: '110px' }}
+                style={{ width: `${lineWidth}px`, minWidth: "110px" }}
               />
               <span className="absolute left-full ml-1.5 sm:ml-2 top-1/2 -translate-y-1/2 text-xs sm:text-sm text-slate-900 dark:text-slate-100 font-bold whitespace-nowrap">
                 <Latex math={ruleLabel.ruleLatex} />
@@ -214,7 +244,7 @@ export const ProofNodeDisplay: React.FC<ProofNodeDisplayProps> = ({ node, select
           goal={node.sequent.goal}
           isSelected={node === selectedNode}
           isComplete={node.isComplete || !!node.rule}
-          isAxiom={node.rule === 'axiom'}
+          isAxiom={node.rule === "axiom"}
           onClick={() => onNodeClick(node)}
           notationRule={notationRule}
         />

@@ -6,9 +6,11 @@
   "customizations": {
     "vscode": {
       "settings": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
         "terminal.integrated.defaultProfile.linux": "bash"
       },
       "extensions": [
+        "esbenp.prettier-vscode",
         "bradlc.vscode-tailwindcss"
       ]
     }
