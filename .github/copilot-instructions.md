@@ -14,5 +14,4 @@
 - Prefer factoring repeated logic into shared helpers or components when it reduces redundancy and keeps behavior clear.
 - It is acceptable to modify existing code structure when that is the simplest way to make the codebase cleaner and less repetitive.
 - Preserve behavior unless the task explicitly asks for a functional change.
-- Avoid speculative abstractions. Only extract shared code when there is clear duplication or maintenance value.
 - Keep refactors focused and minimal. Do not widen scope into unrelated rewrites.
