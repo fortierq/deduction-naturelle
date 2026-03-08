@@ -27,7 +27,6 @@ interface Message {
 }
 
 interface ModalConfig {
-  placeholder: string;
   formulaTemplate?: string;
   variableNames?: string[];
   action: ModalRuleName;
@@ -199,7 +198,7 @@ const App: React.FC = () => {
 
   const openNotationModal = useCallback(() => {
     setIsNotationModalOpen(true);
-  }, [notationRule]);
+  }, []);
 
   const closeNotationModal = useCallback(() => {
     setIsNotationModalOpen(false);
@@ -431,7 +430,6 @@ const App: React.FC = () => {
 
         case "imp-elim":
           setModalState({
-            placeholder: "X",
             formulaTemplate: `({X}) -> (${node.sequent.goal.toString()})`,
             variableNames: ["X"],
             action: "imp-elim",
@@ -444,7 +442,6 @@ const App: React.FC = () => {
 
         case "and-elim-left":
           setModalState({
-            placeholder: "Y",
             formulaTemplate: `(${node.sequent.goal.toString()}) & ({Y})`,
             variableNames: ["Y"],
             action: "and-elim-left",
@@ -453,7 +450,6 @@ const App: React.FC = () => {
 
         case "and-elim-right":
           setModalState({
-            placeholder: "X",
             formulaTemplate: `({X}) & (${node.sequent.goal.toString()})`,
             variableNames: ["X"],
             action: "and-elim-right",
@@ -470,7 +466,6 @@ const App: React.FC = () => {
 
         case "or-elim":
           setModalState({
-            placeholder: "X | Y",
             formulaTemplate: "{X} | {Y}",
             variableNames: ["X", "Y"],
             action: "or-elim",
@@ -487,7 +482,6 @@ const App: React.FC = () => {
             return;
           }
           setModalState({
-            placeholder: "X",
             formulaTemplate: "{X}",
             variableNames: ["X"],
             action: "neg-elim",
@@ -774,8 +768,8 @@ const App: React.FC = () => {
                         notationRule.type === "formula"
                           ? notationRule.formula.toLatex()
                           : notationRule.formulas
-                              .map((formula) => formula.toLatex())
-                              .join(", ")
+                            .map((formula) => formula.toLatex())
+                            .join(", ")
                       }
                     />
                   </span>
@@ -786,13 +780,12 @@ const App: React.FC = () => {
             {/* Message Area */}
             {message && (
               <div
-                className={`mb-6 mx-auto inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 md:px-6 md:py-3 min-h-[42px] md:min-h-[50px] text-center font-semibold ${
-                  message.type === "success"
+                className={`mb-6 mx-auto inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 md:px-6 md:py-3 min-h-[42px] md:min-h-[50px] text-center font-semibold ${message.type === "success"
                     ? "bg-green-100 border-2 border-green-500 text-green-800 dark:bg-green-900/30 dark:border-green-500 dark:text-green-200"
                     : message.type === "error"
                       ? "bg-red-100 border-2 border-red-500 text-red-800 dark:bg-red-900/30 dark:border-red-500 dark:text-red-200"
                       : "bg-blue-100 border-2 border-blue-500 text-blue-800 dark:bg-blue-900/30 dark:border-blue-500 dark:text-blue-200"
-                }`}
+                  }`}
               >
                 {message.text}
               </div>
@@ -827,18 +820,16 @@ const App: React.FC = () => {
       {currentExercise && (
         <>
           <div
-            className={`fixed inset-0 bg-black/30 z-40 transition-opacity duration-300 md:hidden ${
-              isRulesDrawerOpen
+            className={`fixed inset-0 bg-black/30 z-40 transition-opacity duration-300 md:hidden ${isRulesDrawerOpen
                 ? "opacity-100"
                 : "opacity-0 pointer-events-none"
-            }`}
+              }`}
             onClick={() => setIsRulesDrawerOpen(false)}
           />
 
           <aside
-            className={`fixed top-0 left-0 h-full flex flex-col bg-white dark:bg-slate-900 dark:border-r dark:border-slate-700 z-40 transform transition-transform duration-300 ease-out ${
-              isRulesDrawerOpen ? "translate-x-0" : "-translate-x-full"
-            }`}
+            className={`fixed top-0 left-0 h-full flex flex-col bg-white dark:bg-slate-900 dark:border-r dark:border-slate-700 z-40 transform transition-transform duration-300 ease-out ${isRulesDrawerOpen ? "translate-x-0" : "-translate-x-full"
+              }`}
             style={{ width: mobileDrawerWidth, maxWidth: `${drawerWidth}px` }}
           >
             <div
@@ -848,7 +839,7 @@ const App: React.FC = () => {
               <div className="justify-self-center w-full max-w-md">
                 {modalState &&
                   (modalState.variableNames &&
-                  modalState.variableNames.length > 0 ? (
+                    modalState.variableNames.length > 0 ? (
                     <div
                       className={`${modalState.variableNames.length === 2 ? "grid grid-cols-2 gap-2" : "flex justify-center"}`}
                     >
