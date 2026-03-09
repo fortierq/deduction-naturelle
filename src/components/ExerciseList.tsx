@@ -87,6 +87,7 @@ const operatorLatexByFilter: Record<RuleOperator, string> = {
   neg: "\\neg",
   bot: "\\bot",
   raa: "\\mathrm{raa}",
+  te: "\\mathrm{te}",
 };
 
 const FilterDrawer: React.FC<FilterDrawerProps> = ({
@@ -137,17 +138,15 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black/30 z-40 transition-opacity duration-300 md:hidden ${
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 bg-black/30 z-40 transition-opacity duration-300 md:hidden ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
         onClick={onClose}
       />
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-slate-900 dark:border-r-2 dark:border-slate-700 z-40 transform transition-transform duration-300 ease-out ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-slate-900 dark:border-r-2 dark:border-slate-700 z-40 transform transition-transform duration-300 ease-out ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
         style={{ width: mobileDrawerWidth, maxWidth: `${drawerWidth}px` }}
       >
         <div className="flex flex-col h-full">
@@ -196,11 +195,10 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
                       className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                     />
                     <span
-                      className={`text-sm group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors ${
-                        selectedDifficulties.has(diff)
+                      className={`text-sm group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors ${selectedDifficulties.has(diff)
                           ? "text-slate-900 dark:text-slate-100 font-medium"
                           : "text-slate-900 dark:text-slate-100"
-                      }`}
+                        }`}
                     >
                       {difficultyLabels[diff]}
                     </span>
@@ -229,11 +227,10 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
                       className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                     />
                     <span
-                      className={`text-sm font-math group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors ${
-                        selectedOperators.has(operator)
+                      className={`text-sm font-math group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors ${selectedOperators.has(operator)
                           ? "text-slate-900 dark:text-slate-100 font-medium"
                           : "text-slate-900 dark:text-slate-100"
-                      }`}
+                        }`}
                     >
                       <Latex math={operatorLatexByFilter[operator]} />
                     </span>

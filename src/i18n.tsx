@@ -74,6 +74,7 @@ interface Translations {
   proofGoalNotDisjunction: string;
   proofSelectedNotDisjunction: string;
   proofGoalNotNegation: string;
+  proofGoalNotExcludedMiddle: string;
 
   // Formula input modal
   confirm: string;
@@ -151,6 +152,8 @@ const translations: Record<Language, Translations> = {
     proofSelectedNotDisjunction:
       "La formule sélectionnée n'est pas une disjonction",
     proofGoalNotNegation: "Le but n'est pas une négation",
+    proofGoalNotExcludedMiddle:
+      "Le but doit être de la forme A | !A ou !A | A",
 
     // Formula input modal
     confirm: "Confirmer",
@@ -224,6 +227,8 @@ const translations: Record<Language, Translations> = {
     proofGoalNotDisjunction: "Goal is not a disjunction",
     proofSelectedNotDisjunction: "Selected formula is not a disjunction",
     proofGoalNotNegation: "Goal is not a negation",
+    proofGoalNotExcludedMiddle:
+      "Goal must be of the form A | !A or !A | A",
 
     // Formula input modal
     confirm: "Confirm",

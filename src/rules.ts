@@ -2,6 +2,7 @@ import { FormulaType } from "./formulas";
 
 const introRuleSet = [
   "axiom",
+  "te",
   "imp-intro",
   "and-intro",
   "or-intro-left",
@@ -44,7 +45,8 @@ export const isModalRuleName = (rule: RuleName): rule is ModalRuleName =>
 export type RuleOperator =
   | Extract<FormulaType, "imp" | "and" | "or" | "neg">
   | "bot"
-  | "raa";
+  | "raa"
+  | "te";
 export const RULE_OPERATORS: readonly RuleOperator[] = [
   "imp",
   "and",
@@ -52,4 +54,5 @@ export const RULE_OPERATORS: readonly RuleOperator[] = [
   "neg",
   "bot",
   "raa",
+  "te",
 ];

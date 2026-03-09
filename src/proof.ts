@@ -4,6 +4,19 @@ import { Formula } from "./formulas";
 import { RuleName } from "./rules";
 import { Sequent } from "./sequent";
 
+const isExcludedMiddleFormula = (formula: Formula): boolean => {
+  if (formula.type !== "or") {
+    return false;
+  }
+
+  const { left, right } = formula;
+
+  return (
+    (right.type === "neg" && left.equals(right.inner)) ||
+    (left.type === "neg" && right.equals(left.inner))
+  );
+};
+
 export interface DischargedAssumption {
   formula: Formula;
   label?: string;
@@ -76,7 +89,8 @@ export type ProofMessageKey =
   | "proofConjunctionRightMismatch"
   | "proofGoalNotDisjunction"
   | "proofSelectedNotDisjunction"
-  | "proofGoalNotNegation";
+  | "proofGoalNotNegation"
+  | "proofGoalNotExcludedMiddle";
 
 type ProofMessages = Record<ProofMessageKey, string>;
 
@@ -98,6 +112,8 @@ const defaultProofMessages: ProofMessages = {
   proofGoalNotDisjunction: "Goal is not a disjunction",
   proofSelectedNotDisjunction: "Selected formula is not a disjunction",
   proofGoalNotNegation: "Goal is not a negation",
+  proofGoalNotExcludedMiddle:
+    "Goal must be of the form A \\lor \\neg A or \\neg A \\lor A",
 };
 
 interface ProofState {
@@ -446,6 +462,22 @@ export class ProofTree {
     node.premises = [premise];
 
     this.selectedNode = premise;
+    return { success: true };
+  }
+
+  applyTe(): ProofResult {
+    if (!this.selectedNode) return this.fail("noGoalSelected");
+
+    const node = this.selectedNode;
+
+    if (!isExcludedMiddleFormula(node.sequent.goal)) {
+      return this.fail("proofGoalNotExcludedMiddle");
+    }
+
+    this.saveState();
+    node.rule = "te";
+    node.isComplete = true;
+    this.selectedNode = this.findFirstOpenGoal();
     return { success: true };
   }
 

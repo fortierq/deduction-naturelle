@@ -80,6 +80,7 @@ const App: React.FC = () => {
       proofGoalNotDisjunction: t.proofGoalNotDisjunction,
       proofSelectedNotDisjunction: t.proofSelectedNotDisjunction,
       proofGoalNotNegation: t.proofGoalNotNegation,
+      proofGoalNotExcludedMiddle: t.proofGoalNotExcludedMiddle,
     };
     return entries;
   }, [t]);
@@ -423,6 +424,10 @@ const App: React.FC = () => {
           result = proofTree.applyAxiom(matchingHypotheses[0]);
           break;
         }
+
+        case "te":
+          result = proofTree.applyTe();
+          break;
 
         case "imp-intro":
           result = proofTree.applyImpIntro();
@@ -781,10 +786,10 @@ const App: React.FC = () => {
             {message && (
               <div
                 className={`mb-6 mx-auto inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 md:px-6 md:py-3 min-h-[42px] md:min-h-[50px] text-center font-semibold ${message.type === "success"
-                    ? "bg-green-100 border-2 border-green-500 text-green-800 dark:bg-green-900/30 dark:border-green-500 dark:text-green-200"
-                    : message.type === "error"
-                      ? "bg-red-100 border-2 border-red-500 text-red-800 dark:bg-red-900/30 dark:border-red-500 dark:text-red-200"
-                      : "bg-blue-100 border-2 border-blue-500 text-blue-800 dark:bg-blue-900/30 dark:border-blue-500 dark:text-blue-200"
+                  ? "bg-green-100 border-2 border-green-500 text-green-800 dark:bg-green-900/30 dark:border-green-500 dark:text-green-200"
+                  : message.type === "error"
+                    ? "bg-red-100 border-2 border-red-500 text-red-800 dark:bg-red-900/30 dark:border-red-500 dark:text-red-200"
+                    : "bg-blue-100 border-2 border-blue-500 text-blue-800 dark:bg-blue-900/30 dark:border-blue-500 dark:text-blue-200"
                   }`}
               >
                 {message.text}
@@ -821,8 +826,8 @@ const App: React.FC = () => {
         <>
           <div
             className={`fixed inset-0 bg-black/30 z-40 transition-opacity duration-300 md:hidden ${isRulesDrawerOpen
-                ? "opacity-100"
-                : "opacity-0 pointer-events-none"
+              ? "opacity-100"
+              : "opacity-0 pointer-events-none"
               }`}
             onClick={() => setIsRulesDrawerOpen(false)}
           />
