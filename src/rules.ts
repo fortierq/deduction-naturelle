@@ -2,12 +2,12 @@ import { FormulaType } from "./formulas";
 
 const introRuleSet = [
   "axiom",
-  "te",
   "imp-intro",
   "and-intro",
   "or-intro-left",
   "or-intro-right",
   "neg-intro",
+  "te",
 ] as const;
 
 const elimRuleSet = [
