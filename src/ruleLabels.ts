@@ -22,7 +22,7 @@ interface PanelRuleSpec {
 
 const panelRuleSpecByRule: Record<PanelRuleName, PanelRuleSpec> = {
   axiom: { widthPct: 46, latexLabel: "\\mathrm{ax}" },
-  te: { widthPct: 88, latexLabel: "\\mathrm{te}" },
+  te: { widthPct: 50, latexLabel: "\\mathrm{te}" },
   "imp-intro": { widthPct: 58, latexLabel: "\\to_{i}" },
   "imp-elim": { widthPct: 94, latexLabel: "\\to_{e}" },
   "and-intro": { widthPct: 72, latexLabel: "\\wedge_{i}" },
