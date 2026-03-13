@@ -661,7 +661,7 @@ const App: React.FC = () => {
       </header>
 
       <main
-        className="max-w-[112rem] mx-auto p-3 sm:p-4 md:p-8 md:pl-[var(--drawer-offset)]"
+        className="max-w-[112rem] mx-auto p-3 sm:p-4 md:p-6 md:pl-[var(--drawer-offset)]"
         style={
           {
             ["--drawer-offset" as string]: `${desktopDrawerOffset}px`,
@@ -682,7 +682,7 @@ const App: React.FC = () => {
           <>
             {/* Proof Tree */}
             <div
-              className={`${isDarkMode ? "bg-slate-800 border-2 border-slate-700" : "bg-white border-2 border-slate-200"} rounded-xl p-3 sm:p-4 md:p-6 mb-6 min-h-[300px] md:min-h-[400px] overflow-x-auto`}
+              className={`${isDarkMode ? "bg-slate-800 border-2 border-slate-700" : "bg-white border-2 border-slate-200"} rounded-xl p-3 sm:p-4 md:p-4 mb-4 min-h-[300px] md:min-h-[400px] overflow-x-auto`}
             >
               <div className="w-max min-w-full flex justify-center p-1 sm:p-2 md:p-4">
                 {proofTree && (
@@ -697,7 +697,7 @@ const App: React.FC = () => {
             </div>
 
             {/* Controls */}
-            <div className="mb-6">
+            <div className="mb-4">
               <div className="grid grid-cols-2 gap-2 sm:gap-3 md:hidden">
                 <button
                   className="px-4 py-2.5 text-sm sm:text-base bg-white dark:bg-slate-800 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border-2 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500"
@@ -785,7 +785,7 @@ const App: React.FC = () => {
             {/* Message Area */}
             {message && (
               <div
-                className={`mb-6 mx-auto inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 md:px-6 md:py-3 min-h-[42px] md:min-h-[50px] text-center font-semibold ${message.type === "success"
+                className={`mb-4 mx-auto inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 md:px-6 md:py-3 min-h-[42px] md:min-h-[50px] text-center font-semibold ${message.type === "success"
                   ? "bg-green-100 border-2 border-green-500 text-green-800 dark:bg-green-900/30 dark:border-green-500 dark:text-green-200"
                   : message.type === "error"
                     ? "bg-red-100 border-2 border-red-500 text-red-800 dark:bg-red-900/30 dark:border-red-500 dark:text-red-200"
