@@ -34,7 +34,9 @@ interface ModalConfig {
 
 const App: React.FC = () => {
   const { t } = useLanguage();
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() =>
+    window.matchMedia("(prefers-color-scheme: dark)").matches,
+  );
   const [currentExercise, setCurrentExercise] = useState<Exercise | null>(null);
   const [parsedExercise, setParsedExercise] = useState<ParsedExercise | null>(
     null,
@@ -109,6 +111,21 @@ const App: React.FC = () => {
       if (messageTimeoutRef.current !== null) {
         window.clearTimeout(messageTimeoutRef.current);
       }
+    };
+  }, []);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const handleChange = (event: MediaQueryListEvent) => {
+      setIsDarkMode(event.matches);
+    };
+
+    setIsDarkMode(mediaQuery.matches);
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
     };
   }, []);
 
