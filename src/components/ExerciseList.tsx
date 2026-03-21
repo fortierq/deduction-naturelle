@@ -45,7 +45,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise, onClick }) => {
   return (
     <button
       type="button"
-      className="exercise-card"
+      className="exercise-card w-full text-left"
       onClick={onClick}
       aria-label={`${t.startProof}: ${exercise.goal}`}
     >
@@ -101,7 +101,7 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
   totalCount,
 }) => {
   const { t } = useLanguage();
-  const drawerWidth = 420;
+  const drawerWidth = 300;
   const mobileDrawerWidth = `min(${drawerWidth}px, calc(100vw - 1rem))`;
   const difficultyLabels: Record<DifficultyFilter, string> = {
     easy: t.easy,
@@ -120,7 +120,7 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-slate-900 dark:border-r-2 dark:border-slate-700 z-40 transform transition-transform duration-300 ease-out ${isOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed top-0 left-0 h-full bg-white dark:bg-slate-900 dark:border-r-2 dark:border-slate-700 z-40 transform transition-transform duration-300 ease-out ${isOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         style={{ width: mobileDrawerWidth, maxWidth: `${drawerWidth}px` }}
       >

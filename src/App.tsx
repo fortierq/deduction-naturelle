@@ -58,12 +58,14 @@ const App: React.FC = () => {
   const [isFiltersDrawerOpen, setIsFiltersDrawerOpen] = useState(
     () => window.matchMedia("(min-width: 768px)").matches,
   );
-  const drawerWidth = 420;
+  const rulesDrawerWidth = 440;
+  const filtersDrawerWidth = 300;
+  const activeDrawerWidth = currentExercise ? rulesDrawerWidth : filtersDrawerWidth;
   const isLeftPanelOpen = currentExercise
     ? isRulesDrawerOpen
     : isFiltersDrawerOpen;
-  const desktopDrawerOffset = isLeftPanelOpen ? drawerWidth + 16 : 16;
-  const mobileDrawerWidth = `min(${drawerWidth}px, calc(100vw - 1rem))`;
+  const desktopDrawerOffset = isLeftPanelOpen ? activeDrawerWidth + 16 : 16;
+  const mobileDrawerWidth = `min(${rulesDrawerWidth}px, calc(100vw - 1rem))`;
 
   const proofMessages = useCallback(() => {
     const entries: Record<ProofMessageKey, string> = {
@@ -828,7 +830,7 @@ const App: React.FC = () => {
           <aside
             className={`fixed top-0 left-0 h-full flex flex-col bg-white dark:bg-slate-900 dark:border-r dark:border-slate-700 z-40 transform transition-transform duration-300 ease-out ${isRulesDrawerOpen ? "translate-x-0" : "-translate-x-full"
               }`}
-            style={{ width: mobileDrawerWidth, maxWidth: `${drawerWidth}px` }}
+            style={{ width: mobileDrawerWidth, maxWidth: `${rulesDrawerWidth}px` }}
           >
             <div
               className={`px-3 pt-3 ${modalState ? "mb-2" : "mb-4"} grid grid-cols-[2.25rem_1fr_2.25rem] items-center gap-2`}
