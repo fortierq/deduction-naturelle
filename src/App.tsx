@@ -551,10 +551,10 @@ const App: React.FC = () => {
 
   const toggleLeftPanel = useCallback(() => {
     if (currentExercise) {
-      setIsRulesDrawerOpen(true);
+      setIsRulesDrawerOpen((prev) => !prev);
       return;
     }
-    setIsFiltersDrawerOpen(true);
+    setIsFiltersDrawerOpen((prev) => !prev);
   }, [currentExercise]);
 
   return (
@@ -570,10 +570,23 @@ const App: React.FC = () => {
         }
       >
         <div className="max-w-[112rem] mx-auto flex items-center justify-between gap-2 sm:gap-4">
-          <h1 className="text-xl font-bold leading-tight pr-2">
-            <span className="md:hidden">Déduction Naturelle</span>
-            <span className="hidden md:inline">{t.appTitle}</span>
-          </h1>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={toggleLeftPanel}
+              aria-label={currentExercise ? t.inferenceRules : t.filters}
+              className={`${isDarkMode ? "text-slate-100 hover:bg-slate-800" : "text-white hover:bg-blue-800"} p-2 -ml-2 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent`}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
+            <h1 className="text-xl font-bold leading-tight pr-2">
+              <span className="md:hidden">Déduction Naturelle</span>
+              <span className="hidden md:inline">{t.appTitle}</span>
+            </h1>
+          </div>
+
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={backToExercises}
@@ -794,29 +807,6 @@ const App: React.FC = () => {
         )}
       </main>
 
-      {!isLeftPanelOpen && (
-        <button
-          onClick={toggleLeftPanel}
-          aria-label={currentExercise ? t.inferenceRules : t.filters}
-          className="fixed z-50 top-20 left-0 h-10 w-7 rounded-r-xl border-2 border-l-0 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:text-blue-700 hover:bg-blue-50 dark:hover:text-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-        </button>
-      )}
-
       {currentExercise && (
         <>
           <div
@@ -832,13 +822,11 @@ const App: React.FC = () => {
               }`}
             style={{ width: mobileDrawerWidth, maxWidth: `${rulesDrawerWidth}px` }}
           >
-            <div
-              className={`px-3 pt-3 ${modalState ? "mb-2" : "mb-4"} grid grid-cols-[2.25rem_1fr_2.25rem] items-center gap-2`}
-            >
-              <div className="w-9 h-9" aria-hidden="true" />
-              <div className="justify-self-center w-full max-w-md">
-                {modalState &&
-                  (modalState.variableNames &&
+            {modalState && (
+              <div className="px-3 pt-3 mb-2 grid grid-cols-[2.25rem_1fr_2.25rem] items-center gap-2">
+                <div className="w-9 h-9" aria-hidden="true" />
+                <div className="justify-self-center w-full max-w-md">
+                  {modalState.variableNames &&
                     modalState.variableNames.length > 0 ? (
                     <div
                       className={`${modalState.variableNames.length === 2 ? "grid grid-cols-2 gap-2" : "flex justify-center"}`}
@@ -887,28 +875,11 @@ const App: React.FC = () => {
                         />
                       </div>
                     </div>
-                  ))}
+                  )}
+                </div>
+                <div className="w-9 h-9" aria-hidden="true" />
               </div>
-              <button
-                onClick={() => setIsRulesDrawerOpen(false)}
-                className="justify-self-end p-2 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                aria-label={t.cancel}
-              >
-                <svg
-                  className="w-5 h-5 text-slate-600 dark:text-slate-300"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
+            )}
 
             {modalState && (
               <div className="mx-3 mb-2">
@@ -935,7 +906,7 @@ const App: React.FC = () => {
 
             <RulePanel
               onRuleClick={handleRuleClick}
-              className="mb-0 shadow-none w-full flex-1 overflow-y-auto px-3 pb-3"
+              className={`mb-0 shadow-none w-full flex-1 overflow-y-auto px-3 pb-3 ${!modalState ? "pt-3" : ""}`}
               activeRule={modalState?.action}
             />
           </aside>
