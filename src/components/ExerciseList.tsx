@@ -74,8 +74,6 @@ interface FilterDrawerProps {
   onOperatorToggle: (operator: RuleOperator) => void;
   exerciseCount: number;
   totalCount: number;
-  drawerWidth: number;
-  onDrawerWidthChange: (width: number) => void;
 }
 
 type DifficultyFilter = Exercise["difficulty"];
@@ -101,38 +99,15 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
   onOperatorToggle,
   exerciseCount,
   totalCount,
-  drawerWidth,
-  onDrawerWidthChange,
 }) => {
   const { t } = useLanguage();
-  const [isDrawerResizing, setIsDrawerResizing] = useState(false);
+  const drawerWidth = 420;
   const mobileDrawerWidth = `min(${drawerWidth}px, calc(100vw - 1rem))`;
   const difficultyLabels: Record<DifficultyFilter, string> = {
     easy: t.easy,
     medium: t.medium,
     hard: t.hard,
   };
-
-  useEffect(() => {
-    if (!isDrawerResizing) return;
-
-    const handleMouseMove = (event: MouseEvent) => {
-      const nextWidth = Math.min(620, Math.max(240, event.clientX));
-      onDrawerWidthChange(nextWidth);
-    };
-
-    const handleMouseUp = () => {
-      setIsDrawerResizing(false);
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [isDrawerResizing, onDrawerWidthChange]);
 
   return (
     <>
@@ -196,8 +171,8 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
                     />
                     <span
                       className={`text-sm group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors ${selectedDifficulties.has(diff)
-                          ? "text-slate-900 dark:text-slate-100 font-medium"
-                          : "text-slate-900 dark:text-slate-100"
+                        ? "text-slate-900 dark:text-slate-100 font-medium"
+                        : "text-slate-900 dark:text-slate-100"
                         }`}
                     >
                       {difficultyLabels[diff]}
@@ -228,8 +203,8 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
                     />
                     <span
                       className={`text-sm font-math group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors ${selectedOperators.has(operator)
-                          ? "text-slate-900 dark:text-slate-100 font-medium"
-                          : "text-slate-900 dark:text-slate-100"
+                        ? "text-slate-900 dark:text-slate-100 font-medium"
+                        : "text-slate-900 dark:text-slate-100"
                         }`}
                     >
                       <Latex math={operatorLatexByFilter[operator]} />
@@ -262,14 +237,6 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
             </div>
           </div>
         </div>
-
-        <div
-          className="absolute top-0 right-0 h-full w-2 cursor-col-resize hidden md:block"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            setIsDrawerResizing(true);
-          }}
-        />
       </div>
     </>
   );
@@ -279,8 +246,6 @@ interface ExerciseListProps {
   exercises: Exercise[];
   onSelect: (exercise: Exercise) => void;
   onCreateCustomSequent: (goal: string, hypotheses: string[]) => void;
-  drawerWidth: number;
-  onDrawerWidthChange: (width: number) => void;
   isDrawerOpen: boolean;
   onDrawerOpenChange: (isOpen: boolean) => void;
 }
@@ -289,8 +254,6 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
   exercises,
   onSelect,
   onCreateCustomSequent,
-  drawerWidth,
-  onDrawerWidthChange,
   isDrawerOpen,
   onDrawerOpenChange,
 }) => {
@@ -445,13 +408,11 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
         onOperatorToggle={handleOperatorToggle}
         exerciseCount={filteredExercises.length}
         totalCount={exercises.length}
-        drawerWidth={drawerWidth}
-        onDrawerWidthChange={onDrawerWidthChange}
       />
 
       {/* Exercise Grid */}
       {filteredExercises.length > 0 ? (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           {displayedExercises.map((exercise) => (
             <ExerciseCard
               key={getExerciseKey(exercise)}

@@ -58,8 +58,7 @@ const App: React.FC = () => {
   const [isFiltersDrawerOpen, setIsFiltersDrawerOpen] = useState(
     () => window.matchMedia("(min-width: 768px)").matches,
   );
-  const [drawerWidth, setDrawerWidth] = useState(420);
-  const [isRulesDrawerResizing, setIsRulesDrawerResizing] = useState(false);
+  const drawerWidth = 420;
   const isLeftPanelOpen = currentExercise
     ? isRulesDrawerOpen
     : isFiltersDrawerOpen;
@@ -556,27 +555,6 @@ const App: React.FC = () => {
     setIsFiltersDrawerOpen(true);
   }, [currentExercise]);
 
-  useEffect(() => {
-    if (!isRulesDrawerResizing) return;
-
-    const handleMouseMove = (event: MouseEvent) => {
-      const nextWidth = Math.min(620, Math.max(240, event.clientX));
-      setDrawerWidth(nextWidth);
-    };
-
-    const handleMouseUp = () => {
-      setIsRulesDrawerResizing(false);
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [isRulesDrawerResizing]);
-
   return (
     <div
       className={`${isDarkMode ? "dark" : ""} min-h-screen ${isDarkMode ? "bg-slate-900 text-slate-100" : "bg-slate-100 text-slate-800"}`}
@@ -690,8 +668,6 @@ const App: React.FC = () => {
             exercises={exercises}
             onSelect={selectExercise}
             onCreateCustomSequent={createCustomSequent}
-            drawerWidth={drawerWidth}
-            onDrawerWidthChange={setDrawerWidth}
             isDrawerOpen={isFiltersDrawerOpen}
             onDrawerOpenChange={setIsFiltersDrawerOpen}
           />
@@ -959,14 +935,6 @@ const App: React.FC = () => {
               onRuleClick={handleRuleClick}
               className="mb-0 shadow-none w-full flex-1 overflow-y-auto px-3 pb-3"
               activeRule={modalState?.action}
-            />
-
-            <div
-              className="absolute top-0 right-0 h-full w-2 cursor-col-resize hidden md:block"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                setIsRulesDrawerResizing(true);
-              }}
             />
           </aside>
         </>
