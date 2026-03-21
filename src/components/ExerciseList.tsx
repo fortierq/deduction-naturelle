@@ -101,7 +101,7 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
   totalCount,
 }) => {
   const { t } = useLanguage();
-  const drawerWidth = 300;
+  const drawerWidth = 290;
   const mobileDrawerWidth = `min(${drawerWidth}px, calc(100vw - 1rem))`;
   const difficultyLabels: Record<DifficultyFilter, string> = {
     easy: t.easy,
