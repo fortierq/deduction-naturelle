@@ -44,6 +44,7 @@ interface Translations {
   notationSetPlaceholder: string;
   notationCurrent: string;
   notationApply: string;
+  exportProof: string;
   resetProof: string;
   undo: string;
   nextExercise: string;
@@ -62,6 +63,9 @@ interface Translations {
   nothingToUndo: string;
   unknownError: string;
   proofCompletedWithAxioms: string;
+  proofNothingToExport: string;
+  proofExportedToClipboard: string;
+  proofExportFailed: string;
   proofHypothesisNotInContext: string;
   proofHypothesisGoalMismatch: string;
   proofGoalNotImplication: string;
@@ -115,6 +119,7 @@ const translations: Record<Language, Translations> = {
     notationSetPlaceholder: "Formules séparées par des virgules",
     notationCurrent: "Notation active ",
     notationApply: "Appliquer",
+    exportProof: "LaTeX",
     resetProof: "Réinitialiser",
     undo: "Annuler",
     nextExercise: "Suivant",
@@ -133,6 +138,9 @@ const translations: Record<Language, Translations> = {
     nothingToUndo: "Rien à annuler",
     unknownError: "Erreur inconnue",
     proofCompletedWithAxioms: "Preuve terminée.",
+    proofNothingToExport: "Aucune preuve à exporter.",
+    proofExportedToClipboard: "Preuve LaTeX copiée dans le presse-papiers.",
+    proofExportFailed: "Impossible de copier la preuve LaTeX.",
     proofHypothesisNotInContext:
       "Hypothèse non disponible dans le contexte courant",
     proofHypothesisGoalMismatch: "L'hypothèse ne correspond pas au but",
@@ -194,6 +202,7 @@ const translations: Record<Language, Translations> = {
     notationSetPlaceholder: "Formulas separated by commas",
     notationCurrent: "Current notation",
     notationApply: "Apply",
+    exportProof: "LaTeX",
     resetProof: "Reset",
     undo: "Undo",
     nextExercise: "Next",
@@ -212,6 +221,9 @@ const translations: Record<Language, Translations> = {
     nothingToUndo: "Nothing to undo",
     unknownError: "Unknown error",
     proofCompletedWithAxioms: "Proof tree completed.",
+    proofNothingToExport: "No proof to export.",
+    proofExportedToClipboard: "LaTeX proof copied to clipboard.",
+    proofExportFailed: "Unable to copy the LaTeX proof.",
     proofHypothesisNotInContext: "Hypothesis not available in current context",
     proofHypothesisGoalMismatch: "Hypothesis does not match the goal",
     proofGoalNotImplication: "Goal is not an implication",

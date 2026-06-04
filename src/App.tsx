@@ -206,6 +206,7 @@ const App: React.FC = () => {
     setCurrentExercise(null);
     setParsedExercise(null);
     setProofTree(null);
+    proofTreeRef.current = null;
     setIsRulesDrawerOpen(false);
     setIsFiltersDrawerOpen(window.matchMedia("(min-width: 768px)").matches);
     setNotationRule(null);
@@ -272,6 +273,34 @@ const App: React.FC = () => {
       currentIndex >= 0 ? (currentIndex + 1) % exercises.length : 0;
     selectExercise(exercises[nextIndex]);
   }, [currentExercise, selectExercise]);
+
+  const exportProofToLatex = useCallback(() => {
+    const tree = proofTreeRef.current;
+
+    if (!tree) {
+      showMessage(t.proofNothingToExport, "error");
+      return;
+    }
+
+    if (!navigator.clipboard?.writeText) {
+      showMessage(t.proofExportFailed, "error");
+      return;
+    }
+
+    try {
+      const latexDocument = tree.root.toLatexDocument();
+      void navigator.clipboard
+        .writeText(latexDocument)
+        .then(() => {
+          showMessage(t.proofExportedToClipboard, "success");
+        })
+        .catch(() => {
+          showMessage(t.proofExportFailed, "error");
+        });
+    } catch {
+      showMessage(t.proofExportFailed, "error");
+    }
+  }, [showMessage, t]);
 
   const undo = useCallback(() => {
     if (proofTree?.undo()) {
@@ -720,6 +749,12 @@ const App: React.FC = () => {
                   {t.undo}
                 </button>
                 <button
+                  className="px-4 py-2.5 text-sm sm:text-base bg-white dark:bg-slate-800 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border-2 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500"
+                  onClick={exportProofToLatex}
+                >
+                  {t.exportProof}
+                </button>
+                <button
                   className={`${notationRule ? "bg-blue-100 text-blue-800 border-blue-500 dark:bg-blue-900/30 dark:text-blue-100 dark:border-blue-500" : "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-200 dark:border-slate-700"} px-4 py-2.5 text-sm sm:text-base hover:text-blue-700 hover:bg-blue-50 dark:hover:text-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border-2 dark:hover:border-slate-500 hover:border-blue-500`}
                   onClick={openNotationModal}
                 >
@@ -746,6 +781,12 @@ const App: React.FC = () => {
                     onClick={undo}
                   >
                     {t.undo}
+                  </button>
+                  <button
+                    className="px-6 py-3 bg-white dark:bg-slate-800 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border-2 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500"
+                    onClick={exportProofToLatex}
+                  >
+                    {t.exportProof}
                   </button>
                   <button
                     className={`${notationRule ? "bg-blue-100 text-blue-800 border-blue-500 dark:bg-blue-900/30 dark:text-blue-100 dark:border-blue-500" : "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-200 dark:border-slate-700"} px-6 py-3 hover:text-blue-700 hover:bg-blue-50 dark:hover:text-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border-2 hover:border-blue-500 dark:hover:border-slate-500`}
