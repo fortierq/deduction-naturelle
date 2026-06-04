@@ -249,6 +249,9 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [customGoal, setCustomGoal] = useState("");
   const [customHypotheses, setCustomHypotheses] = useState("");
+  const [customFormulaError, setCustomFormulaError] = useState<string | null>(
+    null,
+  );
   const [shuffledExercises, setShuffledExercises] = useState<Exercise[] | null>(
     null,
   );
@@ -317,10 +320,25 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
       .map((h) => h.trim())
       .filter(Boolean);
 
+    try {
+      FormulaParser.parse(goal);
+      hypotheses.forEach((hypothesis) => FormulaParser.parse(hypothesis));
+      setCustomFormulaError(null);
+    } catch (error) {
+      setCustomFormulaError(`${t.invalidFormula}: ${(error as Error).message}`);
+      return;
+    }
+
     onCreateCustomSequent(goal, hypotheses);
     setIsCustomModalOpen(false);
     setCustomGoal("");
     setCustomHypotheses("");
+    setCustomFormulaError(null);
+  };
+
+  const handleCloseCustomModal = () => {
+    setIsCustomModalOpen(false);
+    setCustomFormulaError(null);
   };
 
   const handleShuffleExercises = () => {
@@ -338,7 +356,9 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
     <section className="mb-8">
       <Modal
         isOpen={isCustomModalOpen}
-        onClose={() => setIsCustomModalOpen(false)}
+        onClose={handleCloseCustomModal}
+        onEscapeKey={handleCloseCustomModal}
+        onEnterKey={handleCreateCustomSequent}
         title={t.customSequentModalTitle}
       >
         <div className="mb-4 flex items-center gap-2">
@@ -346,7 +366,12 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
             type="text"
             className="modal-input"
             value={customHypotheses}
-            onChange={(e) => setCustomHypotheses(e.target.value)}
+            onChange={(e) => {
+              setCustomHypotheses(e.target.value);
+              if (customFormulaError) {
+                setCustomFormulaError(null);
+              }
+            }}
             placeholder={t.hypotheses}
           />
         </div>
@@ -356,25 +381,34 @@ export const ExerciseList: React.FC<ExerciseListProps> = ({
             type="text"
             className="modal-input"
             value={customGoal}
-            onChange={(e) => setCustomGoal(e.target.value)}
+            onChange={(e) => {
+              setCustomGoal(e.target.value);
+              if (customFormulaError) {
+                setCustomFormulaError(null);
+              }
+            }}
             placeholder={t.goal}
           />
         </div>
-        <div className="flex gap-3 justify-end mt-4">
+        {customFormulaError && (
+          <p className="mt-3 text-sm text-red-600 dark:text-red-400 text-center">
+            {customFormulaError}
+          </p>
+        )}
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
           <SyntaxHelpBadge text={t.customSequentSyntaxHelp} />
-          <button
-            className="modal-btn-cancel"
-            onClick={() => setIsCustomModalOpen(false)}
-          >
-            {t.cancel}
-          </button>
-          <button
-            className="modal-btn-confirm disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={handleCreateCustomSequent}
-            disabled={!customGoal.trim()}
-          >
-            {t.startProof}
-          </button>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button className="modal-btn-cancel" onClick={handleCloseCustomModal}>
+              {t.cancel}
+            </button>
+            <button
+              className="modal-btn-confirm disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleCreateCustomSequent}
+              disabled={!customGoal.trim()}
+            >
+              {t.startProof}
+            </button>
+          </div>
         </div>
       </Modal>
 
