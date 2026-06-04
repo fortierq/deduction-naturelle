@@ -1,8 +1,9 @@
 // Main App component
 
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useCallback, useRef, useEffect, startTransition } from "react";
 import { Formula, FormulaParser } from "./formulas";
 import { ProofTree, ProofResult, ProofNode, ProofMessageKey } from "./proof";
+import { solveProof } from "./solver";
 import {
   Exercise,
   ParsedExercise,
@@ -46,6 +47,8 @@ const App: React.FC = () => {
   const [, setVersion] = useState(0); // Used to trigger re-renders
   const [message, setMessage] = useState<Message | null>(null);
   const messageTimeoutRef = useRef<number | null>(null);
+  const solveAbortRef = useRef<AbortController | null>(null);
+  const solveRequestIdRef = useRef(0);
   const [modalState, setModalState] = useState<ModalConfig | null>(null);
   const [panelModalValues, setPanelModalValues] = useState<
     Record<string, string>
@@ -55,6 +58,7 @@ const App: React.FC = () => {
   const [notationRule, setNotationRule] = useState<NotationRule | null>(null);
   const [isNotationModalOpen, setIsNotationModalOpen] = useState(false);
   const [notationInput, setNotationInput] = useState("");
+  const [isSolving, setIsSolving] = useState(false);
   const [isFiltersDrawerOpen, setIsFiltersDrawerOpen] = useState(
     () => window.matchMedia("(min-width: 768px)").matches,
   );
@@ -112,7 +116,16 @@ const App: React.FC = () => {
       if (messageTimeoutRef.current !== null) {
         window.clearTimeout(messageTimeoutRef.current);
       }
+      solveAbortRef.current?.abort();
+      solveAbortRef.current = null;
     };
+  }, []);
+
+  const stopSolving = useCallback(() => {
+    solveRequestIdRef.current += 1;
+    solveAbortRef.current?.abort();
+    solveAbortRef.current = null;
+    setIsSolving(false);
   }, []);
 
   useEffect(() => {
@@ -132,6 +145,7 @@ const App: React.FC = () => {
 
   const startExercise = useCallback(
     (exercise: Exercise, parsed: ParsedExercise) => {
+      stopSolving();
       const tree = new ProofTree(
         parsed.goalFormula,
         parsed.hypothesesFormulas,
@@ -150,7 +164,7 @@ const App: React.FC = () => {
       setModalState(null);
       setMessage(null);
     },
-    [proofMessages],
+    [proofMessages, stopSolving],
   );
 
   const selectExercise = useCallback(
@@ -187,6 +201,7 @@ const App: React.FC = () => {
 
   const resetProof = useCallback(() => {
     if (parsedExercise) {
+      stopSolving();
       const tree = new ProofTree(
         parsedExercise.goalFormula,
         parsedExercise.hypothesesFormulas,
@@ -200,9 +215,10 @@ const App: React.FC = () => {
       setModalState(null);
       setMessage(null);
     }
-  }, [parsedExercise, proofMessages]);
+  }, [parsedExercise, proofMessages, stopSolving]);
 
   const backToExercises = useCallback(() => {
+    stopSolving();
     setCurrentExercise(null);
     setParsedExercise(null);
     setProofTree(null);
@@ -214,7 +230,7 @@ const App: React.FC = () => {
     setNotationInput("");
     setModalState(null);
     setMessage(null);
-  }, []);
+  }, [stopSolving]);
 
   const openNotationModal = useCallback(() => {
     setIsNotationModalOpen(true);
@@ -303,13 +319,86 @@ const App: React.FC = () => {
   }, [showMessage, t]);
 
   const undo = useCallback(() => {
+    stopSolving();
     if (proofTree?.undo()) {
       forceUpdate();
       showMessage(t.undidLastAction, "info");
     } else {
       showMessage(t.nothingToUndo, "error");
     }
-  }, [proofTree, showMessage, forceUpdate, t]);
+  }, [proofTree, showMessage, forceUpdate, stopSolving, t]);
+
+  const cancelSolve = useCallback(() => {
+    stopSolving();
+    showMessage(t.proofSearchCancelled, "info");
+  }, [showMessage, stopSolving, t]);
+
+  const solveCurrentProof = useCallback(async () => {
+    if (!parsedExercise) {
+      showMessage(t.noGoalSelected, "error");
+      return;
+    }
+
+    stopSolving();
+
+    const requestId = solveRequestIdRef.current + 1;
+    solveRequestIdRef.current = requestId;
+
+    const controller = new AbortController();
+    solveAbortRef.current = controller;
+    setIsSolving(true);
+    setModalState(null);
+    setMessage({ text: t.proofSearchInProgress, type: "info" });
+
+    try {
+      const result = await solveProof(
+        parsedExercise.goalFormula,
+        parsedExercise.hypothesesFormulas,
+        {
+          signal: controller.signal,
+        },
+      );
+
+      if (solveRequestIdRef.current !== requestId) {
+        return;
+      }
+
+      solveAbortRef.current = null;
+      setIsSolving(false);
+
+      if (result.aborted) {
+        return;
+      }
+
+      if (!result.root) {
+        showMessage(t.proofSearchNoSolution, "error");
+        return;
+      }
+
+      const solvedTree = new ProofTree(
+        parsedExercise.goalFormula,
+        parsedExercise.hypothesesFormulas,
+        proofMessages(),
+      );
+      solvedTree.root = result.root;
+      solvedTree.selectedNode = solvedTree.findFirstOpenGoal();
+      proofTreeRef.current = solvedTree;
+
+      startTransition(() => {
+        setProofTree(solvedTree);
+      });
+
+      setMessage({ text: t.proofCompletedWithAxioms, type: "success" });
+    } catch {
+      if (solveRequestIdRef.current !== requestId || controller.signal.aborted) {
+        return;
+      }
+
+      solveAbortRef.current = null;
+      setIsSolving(false);
+      showMessage(t.unknownError, "error");
+    }
+  }, [parsedExercise, proofMessages, showMessage, stopSolving, t]);
 
   const handleNodeClick = useCallback(
     (node: ProofNode) => {
@@ -340,6 +429,7 @@ const App: React.FC = () => {
 
   const handleModalSubmit = useCallback(
     (formula: Formula) => {
+      stopSolving();
       const tree = proofTreeRef.current;
       if (!tree) return;
 
@@ -369,7 +459,7 @@ const App: React.FC = () => {
         setIsRulesDrawerOpen(false);
       }
     },
-    [modalState, handleResult],
+    [modalState, handleResult, stopSolving],
   );
 
   const submitPanelRuleInput = useCallback(() => {
@@ -447,6 +537,7 @@ const App: React.FC = () => {
 
   const applyRule = useCallback(
     (ruleName: RuleName) => {
+      stopSolving();
       setModalState(null);
 
       if (!proofTree || !proofTree.selectedNode) {
@@ -556,7 +647,7 @@ const App: React.FC = () => {
       setModalState(null);
       handleResult(result);
     },
-    [proofTree, showMessage, handleResult, t],
+    [proofTree, showMessage, handleResult, stopSolving, t],
   );
 
   const handleRuleClick = useCallback(
@@ -603,7 +694,7 @@ const App: React.FC = () => {
             <button
               onClick={toggleLeftPanel}
               aria-label={currentExercise ? t.inferenceRules : t.filters}
-              className={`${isDarkMode ? "text-slate-100 hover:bg-slate-800" : "text-white hover:bg-blue-800"} p-2 -ml-2 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent`}
+              className={`${isDarkMode ? "bg-slate-800 hover:bg-slate-700 text-slate-100 border-slate-700" : "bg-white/15 hover:bg-white/25 text-white border-white/30"} inline-flex items-center justify-center w-11 h-11 rounded-xl border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent`}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -749,6 +840,12 @@ const App: React.FC = () => {
                   {t.undo}
                 </button>
                 <button
+                  className={`${isSolving ? "bg-red-50 text-red-700 border-red-500 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-100 dark:border-red-500 dark:hover:bg-red-900/50" : "bg-white dark:bg-slate-800 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-700 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500"} px-4 py-2.5 text-sm sm:text-base rounded-lg transition-colors border-2`}
+                  onClick={isSolving ? cancelSolve : () => void solveCurrentProof()}
+                >
+                  {isSolving ? t.cancelSolve : t.solveProof}
+                </button>
+                <button
                   className="px-4 py-2.5 text-sm sm:text-base bg-white dark:bg-slate-800 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border-2 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500"
                   onClick={exportProofToLatex}
                 >
@@ -781,6 +878,12 @@ const App: React.FC = () => {
                     onClick={undo}
                   >
                     {t.undo}
+                  </button>
+                  <button
+                    className={`${isSolving ? "bg-red-50 text-red-700 border-red-500 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-100 dark:border-red-500 dark:hover:bg-red-900/50" : "bg-white dark:bg-slate-800 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-700 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500"} px-6 py-3 rounded-lg transition-colors border-2`}
+                    onClick={isSolving ? cancelSolve : () => void solveCurrentProof()}
+                  >
+                    {isSolving ? t.cancelSolve : t.solveProof}
                   </button>
                   <button
                     className="px-6 py-3 bg-white dark:bg-slate-800 text-slate-900 hover:text-blue-700 hover:bg-blue-50 dark:text-slate-100 dark:hover:text-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border-2 border-slate-200 hover:border-blue-500 dark:border-slate-700 dark:hover:border-slate-500"

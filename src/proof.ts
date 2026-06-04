@@ -30,8 +30,8 @@ export interface DischargedPair {
 const exportedRuleLatexByRule: Record<RuleName, string> = {
   axiom: "\\mathrm{ax}",
   te: "\\mathrm{te}",
-  "imp-intro": "\\to_{i}",
-  "imp-elim": "\\to_{e}",
+  "imp-intro": "\\rightarrow_i",
+  "imp-elim": "\\rightarrow_e",
   "and-intro": "\\land_{i}",
   "and-elim-left": "\\land_{e}^{g}",
   "and-elim-right": "\\land_{e}^{d}",
@@ -44,9 +44,6 @@ const exportedRuleLatexByRule: Record<RuleName, string> = {
   raa: "\\mathrm{raa}",
 };
 
-const escapeLatexText = (value: string): string =>
-  value.replace(/([{}_$%&#])/g, "\\$1");
-
 const renderContextLatex = (context: Formula[]): string =>
   context.map((formula) => formula.toLatex()).join(", ");
 
@@ -57,52 +54,29 @@ const renderSequentLatex = (sequent: Sequent): string => {
     : `\\vdash ${sequent.goal.toLatex()}`;
 };
 
-const renderDischargedAssumptionLatex = (
-  dischargedAssumption: DischargedAssumption | DischargedPair | null,
-): string => {
-  if (!dischargedAssumption) {
+const renderRuleLabelLatex = (node: ProofNode): string => {
+  if (!node.rule) {
     return "";
   }
 
-  if ("left" in dischargedAssumption) {
-    return ` [${dischargedAssumption.left.toLatex()}, ${dischargedAssumption.right.toLatex()}]`;
-  }
-
-  const label = dischargedAssumption.label
-    ? `^{${escapeLatexText(dischargedAssumption.label)}}`
-    : "";
-
-  return ` [${dischargedAssumption.formula.toLatex()}${label}]`;
+  const ruleLatex = exportedRuleLatexByRule[node.rule] ?? `\\mathrm{${node.rule}}`;
+  return `[$${ruleLatex}$]`;
 };
 
-const renderInferenceCommand = (premiseCount: number): string => {
-  switch (premiseCount) {
-    case 0:
-      return "\\AxiomC";
-    case 1:
-      return "\\UnaryInfC";
-    case 2:
-      return "\\BinaryInfC";
-    case 3:
-      return "\\TrinaryInfC";
-    default:
-      throw new Error(`Unsupported premise count: ${premiseCount}`);
-  }
-};
+const renderInferenceCommand = (premiseCount: number): string =>
+  `\\infer${premiseCount}`;
 
 const renderProofNodeLatex = (node: ProofNode): string[] => {
-  const lines = node.premises.flatMap((premise) => renderProofNodeLatex(premise));
-  const sequentLatex = renderSequentLatex(node.sequent);
-  const ruleLatex = node.rule
-    ? `${exportedRuleLatexByRule[node.rule] ?? `\\mathrm{${node.rule}}`}${renderDischargedAssumptionLatex(node.dischargedAssumption)}`
-    : "";
-  const inferenceCommand = renderInferenceCommand(node.premises.length);
-
-  if (node.rule) {
-    lines.push(`\\RightLabel{$${ruleLatex}$}`);
+  if (node.premises.length > 3) {
+    throw new Error(`Unsupported premise count: ${node.premises.length}`);
   }
 
-  lines.push(`${inferenceCommand}{$${sequentLatex}$}`);
+  const lines = node.premises.flatMap((premise) => renderProofNodeLatex(premise));
+  const sequentLatex = renderSequentLatex(node.sequent);
+  const ruleLabelLatex = renderRuleLabelLatex(node);
+  const inferenceCommand = renderInferenceCommand(node.premises.length);
+
+  lines.push(`${inferenceCommand}${ruleLabelLatex}{${sequentLatex}}`);
   return lines;
 };
 
@@ -112,14 +86,12 @@ const buildProofDocumentLatex = (root: ProofNode): string => {
     "\\documentclass{article}",
     "\\usepackage[T1]{fontenc}",
     "\\usepackage[utf8]{inputenc}",
-    "\\usepackage{bussproofs}",
+    "\\usepackage{ebproof}",
     "\\usepackage{amssymb}",
     "\\begin{document}",
-    "\\[",
     "\\begin{prooftree}",
     ...bodyLines,
     "\\end{prooftree}",
-    "\\]",
     "\\end{document}",
   ].join("\n");
 };

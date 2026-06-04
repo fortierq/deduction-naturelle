@@ -47,6 +47,8 @@ interface Translations {
   exportProof: string;
   resetProof: string;
   undo: string;
+  solveProof: string;
+  cancelSolve: string;
   nextExercise: string;
 
   // Rule panel
@@ -63,6 +65,9 @@ interface Translations {
   nothingToUndo: string;
   unknownError: string;
   proofCompletedWithAxioms: string;
+  proofSearchInProgress: string;
+  proofSearchNoSolution: string;
+  proofSearchCancelled: string;
   proofNothingToExport: string;
   proofExportedToClipboard: string;
   proofExportFailed: string;
@@ -122,6 +127,8 @@ const translations: Record<Language, Translations> = {
     exportProof: "LaTeX",
     resetProof: "Réinitialiser",
     undo: "Annuler",
+    solveProof: "Résoudre",
+    cancelSolve: "Arrêter",
     nextExercise: "Suivant",
 
     // Rule panel
@@ -138,6 +145,9 @@ const translations: Record<Language, Translations> = {
     nothingToUndo: "Rien à annuler",
     unknownError: "Erreur inconnue",
     proofCompletedWithAxioms: "Preuve terminée.",
+    proofSearchInProgress: "Recherche d'une preuve en cours...",
+    proofSearchNoSolution: "Aucune preuve n'a été trouvée dans la limite de recherche.",
+    proofSearchCancelled: "Recherche interrompue.",
     proofNothingToExport: "Aucune preuve à exporter.",
     proofExportedToClipboard: "Preuve LaTeX copiée dans le presse-papiers.",
     proofExportFailed: "Impossible de copier la preuve LaTeX.",
@@ -205,6 +215,8 @@ const translations: Record<Language, Translations> = {
     exportProof: "LaTeX",
     resetProof: "Reset",
     undo: "Undo",
+    solveProof: "Solve",
+    cancelSolve: "Cancel",
     nextExercise: "Next",
 
     // Rule panel
@@ -221,6 +233,9 @@ const translations: Record<Language, Translations> = {
     nothingToUndo: "Nothing to undo",
     unknownError: "Unknown error",
     proofCompletedWithAxioms: "Proof tree completed.",
+    proofSearchInProgress: "Searching for a proof...",
+    proofSearchNoSolution: "No proof was found within the current search limit.",
+    proofSearchCancelled: "Proof search cancelled.",
     proofNothingToExport: "No proof to export.",
     proofExportedToClipboard: "LaTeX proof copied to clipboard.",
     proofExportFailed: "Unable to copy the LaTeX proof.",
