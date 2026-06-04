@@ -304,7 +304,7 @@ const App: React.FC = () => {
     }
 
     try {
-      const latexDocument = tree.root.toLatexDocument();
+      const latexDocument = tree.root.toLatexDocument(notationRule);
       void navigator.clipboard
         .writeText(latexDocument)
         .then(() => {
@@ -316,7 +316,7 @@ const App: React.FC = () => {
     } catch {
       showMessage(t.proofExportFailed, "error");
     }
-  }, [showMessage, t]);
+  }, [notationRule, showMessage, t]);
 
   const undo = useCallback(() => {
     stopSolving();

@@ -1,6 +1,12 @@
 // Proof tree structure and logic with full sequents
 
 import { Formula } from "./formulas";
+import {
+  NotationRule,
+  renderContextWithNotationLatex,
+  renderFormulaWithNotationLatex,
+  renderNotationDefinitionLatex,
+} from "./notation";
 import { RuleName } from "./rules";
 import { Sequent } from "./sequent";
 
@@ -44,14 +50,19 @@ const exportedRuleLatexByRule: Record<RuleName, string> = {
   raa: "\\mathrm{raa}",
 };
 
-const renderContextLatex = (context: Formula[]): string =>
-  context.map((formula) => formula.toLatex()).join(", ");
+const renderContextLatex = (
+  context: Formula[],
+  notationRule?: NotationRule | null,
+): string => renderContextWithNotationLatex(context, notationRule);
 
-const renderSequentLatex = (sequent: Sequent): string => {
-  const contextLatex = renderContextLatex(sequent.context);
+const renderSequentLatex = (
+  sequent: Sequent,
+  notationRule?: NotationRule | null,
+): string => {
+  const contextLatex = renderContextLatex(sequent.context, notationRule);
   return contextLatex
-    ? `${contextLatex} \\vdash ${sequent.goal.toLatex()}`
-    : `\\vdash ${sequent.goal.toLatex()}`;
+    ? `${contextLatex} \\vdash ${renderFormulaWithNotationLatex(sequent.goal, notationRule)}`
+    : `\\vdash ${renderFormulaWithNotationLatex(sequent.goal, notationRule)}`;
 };
 
 const renderRuleLabelLatex = (node: ProofNode): string => {
@@ -66,13 +77,18 @@ const renderRuleLabelLatex = (node: ProofNode): string => {
 const renderInferenceCommand = (premiseCount: number): string =>
   `\\infer${premiseCount}`;
 
-const renderProofNodeLatex = (node: ProofNode): string[] => {
+const renderProofNodeLatex = (
+  node: ProofNode,
+  notationRule?: NotationRule | null,
+): string[] => {
   if (node.premises.length > 3) {
     throw new Error(`Unsupported premise count: ${node.premises.length}`);
   }
 
-  const lines = node.premises.flatMap((premise) => renderProofNodeLatex(premise));
-  const sequentLatex = renderSequentLatex(node.sequent);
+  const lines = node.premises.flatMap((premise) =>
+    renderProofNodeLatex(premise, notationRule),
+  );
+  const sequentLatex = renderSequentLatex(node.sequent, notationRule);
   const ruleLabelLatex = renderRuleLabelLatex(node);
   const inferenceCommand = renderInferenceCommand(node.premises.length);
 
@@ -80,15 +96,23 @@ const renderProofNodeLatex = (node: ProofNode): string[] => {
   return lines;
 };
 
-const buildProofDocumentLatex = (root: ProofNode): string => {
-  const bodyLines = renderProofNodeLatex(root);
+const buildProofDocumentLatex = (
+  root: ProofNode,
+  notationRule?: NotationRule | null,
+): string => {
+  const bodyLines = renderProofNodeLatex(root, notationRule);
+  const notationDefinitionLatex = renderNotationDefinitionLatex(notationRule);
+
   return [
-    "\\documentclass{article}",
+    "\\documentclass{standalone}",
     "\\usepackage[T1]{fontenc}",
     "\\usepackage[utf8]{inputenc}",
     "\\usepackage{ebproof}",
     "\\usepackage{amssymb}",
     "\\begin{document}",
+    ...(notationDefinitionLatex
+      ? ["\\[", notationDefinitionLatex, "\\]"]
+      : []),
     "\\begin{prooftree}",
     ...bodyLines,
     "\\end{prooftree}",
@@ -138,8 +162,8 @@ export class ProofNode {
     return node;
   }
 
-  toLatexDocument(): string {
-    return buildProofDocumentLatex(this);
+  toLatexDocument(notationRule?: NotationRule | null): string {
+    return buildProofDocumentLatex(this, notationRule);
   }
 }
 
