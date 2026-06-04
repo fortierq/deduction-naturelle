@@ -91,12 +91,6 @@ export const exercises: Exercise[] = [
     rules: ["imp", "or"],
   },
   {
-    goal: "(A & (B | C)) -> ((A & B) | (A & C))",
-    hypotheses: [],
-    difficulty: "medium",
-    rules: ["imp", "and", "or"],
-  },
-  {
     goal: "(A -> B) -> (!B -> !A)",
     hypotheses: [],
     difficulty: "medium",
@@ -133,16 +127,16 @@ export const exercises: Exercise[] = [
     rules: ["imp", "neg", "raa"],
   },
   {
-    goal: "A | !A",
-    hypotheses: [],
-    difficulty: "hard",
-    rules: ["or", "neg", "raa"],
-  },
-  {
     goal: "((A -> B) -> A) -> A",
     hypotheses: [],
     difficulty: "hard",
     rules: ["imp", "bot", "raa"],
+  },
+  {
+    goal: "(A & (B | C)) -> ((A & B) | (A & C))",
+    hypotheses: [],
+    difficulty: "hard",
+    rules: ["imp", "and", "or"],
   },
   {
     goal: "(A -> B) -> (C -> D) -> (A | C) -> (B | D)",
