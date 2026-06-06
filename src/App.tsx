@@ -304,7 +304,7 @@ const App: React.FC = () => {
     }
 
     try {
-      const latexDocument = tree.root.toLatexDocument(notationRule);
+      const latexDocument = tree.root.toLatexDocument();
       void navigator.clipboard
         .writeText(latexDocument)
         .then(() => {
@@ -316,7 +316,7 @@ const App: React.FC = () => {
     } catch {
       showMessage(t.proofExportFailed, "error");
     }
-  }, [notationRule, showMessage, t]);
+  }, [showMessage, t]);
 
   const undo = useCallback(() => {
     stopSolving();
@@ -701,8 +701,9 @@ const App: React.FC = () => {
               </svg>
             </button>
 
-            <h1 className="hidden md:block text-xl font-bold leading-tight pr-2">
-              {t.appTitle}
+            <h1 className="text-xl font-bold leading-tight pr-2">
+              <span className="md:hidden">Déduction Naturelle</span>
+              <span className="hidden md:inline">{t.appTitle}</span>
             </h1>
           </div>
 

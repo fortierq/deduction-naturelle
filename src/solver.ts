@@ -194,9 +194,6 @@ const prioritizeFormulas = (candidates: Formula[], context: Formula[]): Formula[
   });
 };
 
-// The solver runs a bounded iterative-deepening search over sequents.
-// It prefers direct introduction rules first, then elimination rules from the context,
-// while caching repeated states and yielding periodically so the UI stays responsive.
 class ProofSearcher {
   private readonly maxDepth: number;
   private readonly yieldAfterSteps: number;
@@ -219,8 +216,6 @@ class ProofSearcher {
     this.formulaPool = buildFormulaPool(rootGoal, rootContext);
   }
 
-  // Increase the search depth one step at a time so shallow proofs are found quickly
-  // without committing to a deep branch too early.
   async search(): Promise<ProofSearchResult> {
     const initialSequent = new Sequent(
       this.rootContext.map((formula) => formula.clone()),
@@ -477,7 +472,10 @@ class ProofSearcher {
       return makeUnaryNode(sequent, "and-elim-right", premise);
     }
 
-    const disjunctionCandidates = this.prioritizeDisjunctionCandidates(sequent.context);
+    const disjunctionCandidates = this.prioritizeDisjunctionCandidates(
+      sequent.goal,
+      sequent.context,
+    );
 
     for (const disjunction of disjunctionCandidates) {
       const disjunctionProof = await this.prove(
@@ -609,17 +607,20 @@ class ProofSearcher {
     );
   }
 
-  private prioritizeDisjunctionCandidates(context: Formula[]): Formula[] {
+  private prioritizeDisjunctionCandidates(
+    goal: Formula,
+    context: Formula[],
+  ): Formula[] {
     return prioritizeFormulas(
-      normalizeContext(context).filter(
-        (formula): formula is Formula => formula.type === "or",
+      this.formulaPool.filter(
+        (formula): formula is Formula =>
+          formula.type === "or" && !formula.equals(goal),
       ),
       context,
     );
   }
 }
 
-// Public entrypoint used by the app and UI actions.
 export const solveProof = async (
   goal: Formula,
   hypotheses: Formula[],
